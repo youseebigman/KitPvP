@@ -73,10 +73,8 @@ class KitpvpCommands(
 
         if (sender.isOp) {
             if (args.isEmpty() || args[0].equals("help", ignoreCase = true)) {
-                ChatUtil.sendMessage(
-                    sender, "&8[&b&lKit&4&lPvP&8]&2&l Справка помощи для команды /kitpvp \n" +
-                            "&8[&b&lKit&4&lPvP&8]&e&l /kitpvp booster add [playerName] [minutes] &f- Выдать бустер игроку"
-                )
+                ChatUtil.sendMessage(sender, "&8[&b&lKit&4&lPvP&8]&2&l Справка помощи для команды /kitpvp \n" +
+                        "&8[&b&lKit&4&lPvP&8]&e&l /kitpvp booster add [playerName] [minutes] &f- Выдать бустер игроку")
                 return true
             } else {
                 if (sender is Player) {
@@ -108,7 +106,6 @@ class KitpvpCommands(
                                         } else {
                                             ChatUtil.sendMessage(sender, "&8[&b&lKit&4&lPvP&8]&c Вы не в режиме работы с табличками!")
                                         }
-
                                     } else {
                                         ChatUtil.sendMessage(sender, "&8[&b&lKit&4&lPvP&8]&c&l Вы неправильно ввели кулдаун!")
                                     }
@@ -132,15 +129,11 @@ class KitpvpCommands(
                                 }
                             }
                         }
-
                     }
                     if (args[0].equals("booster", ignoreCase = true)) {
                         if (args.size == 1 || args.size == 2 || args.size == 3) {
-
-                            ChatUtil.sendMessage(
-                                sender, "&8[&b&lKit&4&lPvP&8]&c&l Вы не ввели нужные данные! \n" +
-                                        "&8[&b&lKit&4&lPvP&8]&e&l /kitpvp booster add [playerName] [minutes]"
-                            )
+                            ChatUtil.sendMessage(sender, "&8[&b&lKit&4&lPvP&8]&c&l Вы не ввели нужные данные! \n" +
+                                    "&8[&b&lKit&4&lPvP&8]&e&l /kitpvp booster add [playerName] [minutes]")
                             return true
                         }
                         if (args.size == 4) {
@@ -154,30 +147,16 @@ class KitpvpCommands(
                                     }
                                     if (time != 100500L) {
                                         if (target == null) {
-                                            ChatUtil.sendMessage(
-                                                sender,
-                                                "&8[&b&lKit&4&lPvP&8]&c&l Указанного игрока нету на сервере!"
-                                            )
+                                            ChatUtil.sendMessage(sender, "&8[&b&lKit&4&lPvP&8]&c&l Указанного игрока нету на сервере!")
                                             return true
                                         } else {
                                             val targetKitPlayer = playerService[args[2]]!!
                                             if (targetKitPlayer.activeBooster) {
-                                                ChatUtil.sendMessage(
-                                                    sender,
-                                                    "&8[&b&lKit&4&lPvP&8]&c&l У данного игрока уже активирован бустер!"
-                                                )
-
+                                                ChatUtil.sendMessage(sender, "&8[&b&lKit&4&lPvP&8]&c&l У данного игрока уже активирован бустер!")
                                             } else {
-                                                boosterManager.createBooster(
-                                                    TimeUnit.MINUTES.toMillis(time),
-                                                    true,
-                                                    target.name
-                                                )
+                                                boosterManager.createBooster(TimeUnit.MINUTES.toMillis(time), true, target.name)
                                                 targetKitPlayer.boosterTime = time
-                                                ChatUtil.sendMessage(
-                                                    sender,
-                                                    "&8[&b&lKit&4&lPvP&8]&a&l Вы успешно выдали бустер игроку ${target.name} на $time минут"
-                                                )
+                                                ChatUtil.sendMessage(sender, "&8[&b&lKit&4&lPvP&8]&a&l Вы успешно выдали бустер игроку ${target.name} на $time минут")
                                                 logger.log("${sender.name} выдал бустер игроку ${target.name}")
                                                 return true
                                             }
@@ -189,10 +168,6 @@ class KitpvpCommands(
                             }
                         }
                     }
-                    if (args[0].equals("sign", ignoreCase = true)) {
-
-                    }
-
                 }
             }
 
