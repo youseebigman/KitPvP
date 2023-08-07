@@ -1,11 +1,8 @@
 package ru.remsoftware.game.money.boosters
 
 import org.bukkit.Bukkit
-import org.bukkit.boss.BarColor
-import org.bukkit.boss.BarStyle
 import org.bukkit.entity.Player
 import ru.remsoftware.database.DataBaseRepository
-import ru.remsoftware.game.player.KitPlayer
 import ru.remsoftware.game.player.PlayerService
 import ru.starfarm.core.task.GlobalTaskContext
 import ru.starfarm.core.util.format.ChatUtil
@@ -44,16 +41,15 @@ class BoosterManager(
 
         GlobalTaskContext.everyAsync(20, 20) {
             val kPlayer = playerService[playerName]
-            val boosterRemainingTime = booster.remainingTime - 1
-            booster.remainingTime = boosterRemainingTime
+            booster.remainingTime -= 1
             if (kPlayer == null) {
                 it.cancel()
             } else {
-                kPlayer.boosterTime = TimeUnit.SECONDS.toMillis(boosterRemainingTime)
+                kPlayer.boosterTime = TimeUnit.SECONDS.toMillis(booster.remainingTime)
                 if (booster.remainingTime <= 0) {
                     ChatUtil.sendMessage(player, "&cВремя вашего бустера вышло!")
-                    kPlayer.activeBooster = false
                     kitPlayer.localBooster = 1.0
+                    kPlayer.activeBooster = false
                     playerService[playerName] = kitPlayer
                     dataBase.updatePlayer(kitPlayer)
                     it.cancel()

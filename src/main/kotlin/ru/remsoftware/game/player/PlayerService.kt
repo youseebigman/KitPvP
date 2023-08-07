@@ -150,11 +150,7 @@ class PlayerService(
 
     fun playerDataLoad(playerName: String): KitPlayer {
         val kitPlayer = PlayerLoader(playerName, database)
-        return KitPlayer(
-            kitPlayer.name, kitPlayer.kit, kitPlayer.money, kitPlayer.donateGroup, kitPlayer.arena,
-            kitPlayer.currentKills, kitPlayer.kills, kitPlayer.deaths, kitPlayer.localBooster, kitPlayer.activeBooster,
-            kitPlayer.boosterTime
-        )
+        return KitPlayer(kitPlayer.name, kitPlayer.kit, kitPlayer.money, kitPlayer.donateGroup, kitPlayer.arena, kitPlayer.currentKills, kitPlayer.kills, kitPlayer.deaths, kitPlayer.localBooster, kitPlayer.activeBooster, kitPlayer.boosterTime)
     }
 
     private fun handleStatsOnKill(killer: Player, victim: Player) {

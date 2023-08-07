@@ -3,10 +3,10 @@ package ru.remsoftware.game.player
 import ru.remsoftware.database.DataBaseRepository
 
 class PlayerLoader(
-    private val pname: String,
+    private val pName: String,
     private val dataBase: DataBaseRepository,
 ) {
-    var name = pname
+    var name = pName
         private set
     var kit = "default"
         private set
@@ -32,10 +32,7 @@ class PlayerLoader(
     init {
         var playerData = dataBase.loadPlayerData(name)
         if (playerData == null) {
-            playerData = KitPlayer(
-                name, kit, money, donateGroup, arena, kills, currentKills, deaths, localBooster,
-                activeBooster, boosterTime
-            )
+            playerData = KitPlayer(name, kit, money, donateGroup, arena, kills, currentKills, deaths, localBooster, activeBooster, boosterTime)
             dataBase.createPlayer(playerData)
         }
         this.name = playerData.name

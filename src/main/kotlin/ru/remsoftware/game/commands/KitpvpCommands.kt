@@ -2,12 +2,11 @@ package ru.remsoftware.game.commands
 
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
-import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.command.TabExecutor
-import org.bukkit.command.defaults.BukkitCommand
 import org.bukkit.entity.Player
 import ru.remsoftware.database.DataBaseRepository
+import ru.remsoftware.game.Tips
 import ru.remsoftware.game.money.boosters.BoosterManager
 import ru.remsoftware.game.player.PlayerService
 import ru.remsoftware.game.signs.SignService
@@ -65,12 +64,6 @@ class KitpvpCommands(
         args: Array<out String>
     ): Boolean {
 
-        val signTips: String = "&8[&b&lKit&4&lPvP&8]&c&l Вы неправильно ввели команду! \n" +
-                "&8[&b&lKit&4&lPvP&8]&e&l /kitpvp sign work &f- Включить/Выключить режим работы с табличками \n" +
-                "&8[&b&lKit&4&lPvP&8]&e&l /kitpvp sign create [reward] [cooldown(sec)] &f- Создать табличку с монетами \n" +
-                "&8[&b&lKit&4&lPvP&8]&e&l /kitpvp sign update [reward] [cooldown(sec)] &f- Обновить табличку с монетами"
-
-
         if (sender.isOp) {
             if (args.isEmpty() || args[0].equals("help", ignoreCase = true)) {
                 ChatUtil.sendMessage(sender, "&8[&b&lKit&4&lPvP&8]&2&l Справка помощи для команды /kitpvp \n" +
@@ -115,7 +108,7 @@ class KitpvpCommands(
                             }
                         }
                         if (args.size == 1 || args.size == 3) {
-                            ChatUtil.sendMessage(sender, signTips)
+                            ChatUtil.sendMessage(sender, Tips.SIGNTIPS.tip)
                         }
                         if (args.size == 2) {
                             if (args[1].equals("work")) {
