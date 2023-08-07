@@ -11,12 +11,14 @@ class BlockBreakListener(
     fun onBlockBreak(event: BlockBreakEvent) {
         val player = event.player
         val signWorkers = signService.getWorkers()
-        if (!player.isOp) {
+        if (player.isOp) {
+            if (signWorkers.contains(player.name)) {
+                event.isCancelled = true
+                event.isDropItems = false
+            }
+        } else {
             event.isCancelled = true
             event.isDropItems = false
-        }
-        else if (signWorkers.contains(player.name)) {
-            event.isCancelled = true
         }
     }
 }

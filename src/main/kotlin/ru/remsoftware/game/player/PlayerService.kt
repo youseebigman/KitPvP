@@ -5,13 +5,10 @@ import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
-import org.bukkit.event.entity.EntityDamageEvent.DamageCause
 import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent
-import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import ru.remsoftware.database.DataBaseRepository
-import ru.remsoftware.game.money.boosters.BoosterManager
 import ru.remsoftware.utils.Logger
 import ru.starfarm.core.ApiManager
 import ru.starfarm.core.task.GlobalTaskContext
@@ -22,7 +19,6 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
-import java.util.concurrent.TimeUnit
 
 @Component
 class PlayerService(
@@ -110,9 +106,7 @@ class PlayerService(
         }
     }
 
-
     fun loadScoreboard(player: Player) {
-
         val kitplayer = get(player)!!
 
         ApiManager.newScoreboardBuilder().apply {
@@ -144,25 +138,23 @@ class PlayerService(
                 }
             }
             addUpdater(60) { boardPlayer, scoreboard ->
-                val kPlayer = get(boardPlayer)
-                scoreboard.setLine(8, ChatUtil.color("  &fМонеты: &b${kPlayer?.money}"))
-                scoreboard.setLine(7, ChatUtil.color("  &fУбийств: &b${kPlayer?.kills}"))
-                scoreboard.setLine(6, ChatUtil.color("  &fСмертей: &b${kPlayer?.deaths}"))
-                scoreboard.setLine(5, ChatUtil.color("  &fТекущие убийства: &b${kPlayer?.currentKills}"))
-                scoreboard.setLine(4, ChatUtil.color("  &fK/D: &b${kPlayer?.kills}"))
+                val kPlayer = get(boardPlayer)!!
+                scoreboard.setLine(8, ChatUtil.color("  &fМонеты: &b${kPlayer.money}"))
+                scoreboard.setLine(7, ChatUtil.color("  &fУбийств: &b${kPlayer.kills}"))
+                scoreboard.setLine(6, ChatUtil.color("  &fСмертей: &b${kPlayer.deaths}"))
+                scoreboard.setLine(5, ChatUtil.color("  &fТекущие убийства: &b${kPlayer.currentKills}"))
+                scoreboard.setLine(4, ChatUtil.color("  &fK/D: &b${kPlayer.kills}"))
             }
         }.build(player)
     }
 
-
     fun playerDataLoad(playerName: String): KitPlayer {
         val kitPlayer = PlayerLoader(playerName, database)
-        val playerData = KitPlayer(
+        return KitPlayer(
             kitPlayer.name, kitPlayer.kit, kitPlayer.money, kitPlayer.donateGroup, kitPlayer.arena,
             kitPlayer.currentKills, kitPlayer.kills, kitPlayer.deaths, kitPlayer.localBooster, kitPlayer.activeBooster,
             kitPlayer.boosterTime
         )
-        return playerData
     }
 
     private fun handleStatsOnKill(killer: Player, victim: Player) {
@@ -189,8 +181,6 @@ class PlayerService(
             sendMessageWithVariants(victimMoney, victim, "death")
         }
         sendMessageWithVariants(moneyForKill, killer, "kill")
-
-
 
         if (victimData.money < 0) victimData.money = 0
 
@@ -228,11 +218,6 @@ class PlayerService(
                 ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Вы получили $divisible монеты за убийство игрока")
             }
         }
-
     }
-
-    private fun handleMoneyOnKill(victimMoney: Int) =
-        if (victimMoney >= 50000) victimMoney / 20 + 20 else victimMoney / 10 + 20
-
-
+    private fun handleMoneyOnKill(victimMoney: Int) = if (victimMoney >= 50000) victimMoney / 20 + 20 else victimMoney / 10 + 20
 }
