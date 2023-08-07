@@ -1,9 +1,5 @@
 package ru.remsoftware.game.player
 
-import java.util.Arrays
-import java.util.UUID
-
-
 data class KitPlayer(
     var name: String,
     var kit: String,
