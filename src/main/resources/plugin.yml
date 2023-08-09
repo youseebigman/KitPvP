@@ -6,4 +6,5 @@ author: StarFarm
 softdepend: [Core]
 commands:
   kitpvp:
+    aliases: [k, kit]
     usage: /<command>

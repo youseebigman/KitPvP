@@ -14,21 +14,22 @@ import org.bukkit.event.server.PluginDisableEvent
 import org.bukkit.event.server.PluginEnableEvent
 import ru.remsoftware.database.DataBaseRepository
 import ru.remsoftware.game.money.MoneyManager
+import ru.remsoftware.game.player.KitPlayer
+import ru.remsoftware.utils.LocationParser
 import ru.remsoftware.utils.Logger
 import ru.starfarm.core.CorePlugin
 import ru.starfarm.core.task.GlobalTaskContext
 import ru.starfarm.core.util.format.ChatUtil
 import ru.tinkoff.kora.common.Component
+import java.util.*
 
 
 @Component
 class SignService(
     private val database: DataBaseRepository,
-    private val logger: Logger,
     private val moneyManager: MoneyManager,
-    private val plugin: CorePlugin,
-
-    ) : Listener {
+    private val locParse: LocationParser,
+) : Listener {
 
     val moneySignsCache = hashMapOf<Location, MoneySignEntity>()
     private val signWorkers = mutableListOf<String>()
@@ -36,8 +37,8 @@ class SignService(
     private var signRestorer = mutableListOf<MoneySignEntity>()
 
     init {
-        val iterator = signRestorer.listIterator()
         GlobalTaskContext.every(20, 20) {
+            val iterator = signRestorer.listIterator()
             while (iterator.hasNext()) {
                 val sign = iterator.next()
                 val remainingTime = sign.remainingTime
@@ -56,6 +57,7 @@ class SignService(
     fun set(loc: Location, data: MoneySignEntity) {
         moneySignsCache[loc] = data
     }
+    fun all(): MutableCollection<MoneySignEntity> = Collections.unmodifiableCollection(moneySignsCache.values)
 
     fun getWorkers() = signWorkers
 
@@ -110,12 +112,24 @@ class SignService(
             }
         }
     }
+    fun moneySignsLoader(logger: Logger, database: DataBaseRepository) {
+        val signsListLoader = SignsLoader(logger, database)
+        val signsDataList = signsListLoader.moneySigns
+        for (sing in signsDataList) {
+            val loc = locParse.locStrToLoc(sing.location)
+            val signsData = MoneySignEntity(loc, sing.reward, sing.status, sing.cooldown, sing.remainingTime)
+            moneySignsCache[loc] = signsData
+            if (!signsData.status) {
+                restore(signsData)
+            }
+        }
+    }
 
     fun createSign(database: DataBaseRepository, sign: Block, reward: Int, cooldown: Long, player: Player) {
         if (moneySignsCache.containsKey(sign.location)) {
             ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c&lУ этой таблички уже установлены данные, вы можете их обновить")
         } else {
-            val dataLocation = locToStr(sign.location)
+            val dataLocation = locParse.locToStr(sign.location)
             val cooldownMillis = cooldown * 1000
             val moneySignData = MoneySignData(dataLocation, reward, true, cooldownMillis, 0)
             val moneySignEntity = MoneySignEntity(sign.location, reward, true, cooldownMillis, 0)
@@ -127,11 +141,12 @@ class SignService(
                 signState.setLine(2, "Награду")
                 signState.update()
             }
+            ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&a&L Вы успешно установили табличку")
         }
     }
 
     fun updateSign(database: DataBaseRepository, sign: Block, reward: Int, cooldown: Long, player: Player) {
-        val dataLocation = locToStr(sign.location)
+        val dataLocation = locParse.locToStr(sign.location)
         val cooldownMillis = cooldown * 1000
         val moneySignData = MoneySignData(dataLocation, reward, true, cooldownMillis, 0)
         val moneySignEntity = MoneySignEntity(sign.location, reward, true, cooldownMillis, 0)
@@ -139,29 +154,7 @@ class SignService(
         database.updateSignData(moneySignData)
     }
 
-    fun moneySignsLoader(logger: Logger, database: DataBaseRepository) {
-        val signsListLoader = SignsLoader(logger, database)
-        val signsDataList = signsListLoader.moneySigns
-        for (sing in signsDataList) {
-            val loc = locStrToLoc(sing.location)
-            val signsData = MoneySignEntity(loc, sing.reward, sing.status, sing.cooldown, sing.remainingTime)
-            moneySignsCache[loc] = signsData
-            if (!signsData.status) {
-                restore(signsData)
-            }
-        }
-    }
 
-    fun locToStr(loc: Location): String = "${loc.world.name}:${loc.blockX}:${loc.blockY}:${loc.blockZ}"
-
-    fun locStrToLoc(loc: String): Location {
-        val parts: List<String> = loc.split(":")
-        val world: World = Bukkit.getServer().getWorld(parts[0])
-        val x: Double = parts[1].toDouble()
-        val y: Double = parts[2].toDouble()
-        val z: Double = parts[3].toDouble()
-        return Location(world, x, y, z)
-    }
 
 
 }

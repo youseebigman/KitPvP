@@ -39,19 +39,20 @@ class BoosterManager(
         val playerName = player.name
         val kitPlayer = playerService[playerName]!!
 
-        GlobalTaskContext.everyAsync(20, 20) {
-            val kPlayer = playerService[playerName]
+        GlobalTaskContext.everyAsync(1, 20) {
+            val boosterRemainingTime = booster.remainingTime
             booster.remainingTime -= 1
+            val kPlayer = playerService[playerName]
             if (kPlayer == null) {
                 it.cancel()
             } else {
-                kPlayer.boosterTime = TimeUnit.SECONDS.toMillis(booster.remainingTime)
-                if (booster.remainingTime <= 0) {
-                    ChatUtil.sendMessage(player, "&cВремя вашего бустера вышло!")
+                kitPlayer.boosterTime = TimeUnit.SECONDS.toMillis(booster.remainingTime)
+                if (boosterRemainingTime == 0L) {
+                    kitPlayer.activeBooster = false
                     kitPlayer.localBooster = 1.0
-                    kPlayer.activeBooster = false
                     playerService[playerName] = kitPlayer
                     dataBase.updatePlayer(kitPlayer)
+                    ChatUtil.sendMessage(player, "&cВремя вашего бустера вышло!")
                     it.cancel()
                 }
             }

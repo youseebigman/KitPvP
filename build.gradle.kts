@@ -3,9 +3,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 buildscript {
     repositories {
-        maven("https://repo.starfarm.fun/public")
         maven {
-            url = uri("https://repo.starfarm.fun/repository/maven-private")
+            url = uri("https://repo.starfarm.fun/private")
             credentials {
                 username = System.getenv("SF_REPO_USER")
                 password = System.getenv("SF_REPO_PASSWORD")
@@ -36,11 +35,10 @@ kotlin {
 
 repositories {
     mavenCentral()
-    maven("https://repo.starfarm.fun/public")
 
     maven("https://papermc.io/repo/repository/maven-public/")
     maven {
-        url = uri("https://repo.starfarm.fun/repository/maven-private")
+        url = uri("https://repo.starfarm.fun/private")
         credentials {
             username = System.getenv("SF_REPO_USER")
             password = System.getenv("SF_REPO_PASSWORD")
@@ -55,15 +53,17 @@ dependencies {
     val kora = platform("ru.tinkoff.kora:kora-parent:$koraVersion")
     compileOnly("org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT")
     compileOnly("com.destroystokyo.paper", "paper-api", "1.12.2-R0.1-SNAPSHOT")
-    compileOnly("ru.starfarm:core:1.3.46-kt")
-    implementation("com.google.devtools.ksp:symbol-processing-api:1.8.10-1.0.9")
+    compileOnly("ru.starfarm:core:1.3.68")
     implementation("mysql:mysql-connector-java:8.0.28")
+
+    implementation("com.google.devtools.ksp:symbol-processing-api:1.8.10-1.0.9")
     implementation(kora)
     ksp(kora)
     ksp("ru.tinkoff.kora:symbol-processors")
     implementation("ru.tinkoff.kora:database-jdbc:0.11.9")
     implementation("ru.tinkoff.kora:common:0.11.9")
     runtimeOnly("ru.tinkoff.kora:config-common:0.11.9")
+
     compileOnly(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 }
 tasks {
@@ -83,7 +83,7 @@ tasks {
     }
     withType<Zip> {
         configureEach {
-            duplicatesStrategy = org.gradle.api.file.DuplicatesStrategy.INCLUDE
+            duplicatesStrategy = DuplicatesStrategy.INCLUDE
         }
     }
 }

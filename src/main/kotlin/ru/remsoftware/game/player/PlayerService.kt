@@ -75,7 +75,7 @@ class PlayerService(
     @EventHandler(priority = EventPriority.LOWEST)
     fun onPlayerPreJoin(event: AsyncPlayerPreLoginEvent) {
         val playerName = event.name
-        val playerData = playerDataLoad(playerName)
+        val playerData = playerDataLoad(playerName)!!
         players[playerName] = playerData
         logger.log("Player data loaded for $playerName \n $playerData")
     }
@@ -128,22 +128,18 @@ class PlayerService(
             setLine(1, ChatUtil.color("        &bwww.starfarm.fun"))
 
             addUpdater(20) { boardPlayer, scoreboard ->
-                val kPlayer = get(boardPlayer)
-                scoreboard.setLine(11, ChatUtil.color("&3&l     ${LocalDateTime.now(ZoneId.of("Europe/Moscow")).format(DateTimeFormatter.ofPattern("d.MM.yyyy HH:mm:ss"))}"))
-
-                if (kPlayer!!.activeBooster) {
-                    scoreboard.setLine(3, ChatUtil.color("  &fБустер: &a${NumberUtil.getTime(kPlayer.boosterTime)}"))
-                } else {
-                    setLine(3, ChatUtil.color("  &fБустер: &eНету"))
-                }
-            }
-            addUpdater(60) { boardPlayer, scoreboard ->
                 val kPlayer = get(boardPlayer)!!
+                scoreboard.setLine(11, ChatUtil.color("&3&l     ${LocalDateTime.now(ZoneId.of("Europe/Moscow")).format(DateTimeFormatter.ofPattern("d.MM.yyyy HH:mm:ss"))}"))
                 scoreboard.setLine(8, ChatUtil.color("  &fМонеты: &b${kPlayer.money}"))
                 scoreboard.setLine(7, ChatUtil.color("  &fУбийств: &b${kPlayer.kills}"))
                 scoreboard.setLine(6, ChatUtil.color("  &fСмертей: &b${kPlayer.deaths}"))
                 scoreboard.setLine(5, ChatUtil.color("  &fТекущие убийства: &b${kPlayer.currentKills}"))
                 scoreboard.setLine(4, ChatUtil.color("  &fK/D: &b${kPlayer.kills}"))
+                if (kPlayer.activeBooster) {
+                    scoreboard.setLine(3, ChatUtil.color("  &fБустер: &a${NumberUtil.getTime(kPlayer.boosterTime)}"))
+                } else {
+                    scoreboard.setLine(3, ChatUtil.color("  &fБустер: &eНету"))
+                }
             }
         }.build(player)
     }

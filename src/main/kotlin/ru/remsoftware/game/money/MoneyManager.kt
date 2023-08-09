@@ -28,13 +28,13 @@ class MoneyManager(
             playerService[name] = playerData
             val remainder = bMoney % 10
             if (remainder == 0 || remainder > 4) {
-                ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Вы получили $bMoney монет")
+                ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&f Вы получили &a&l$bMoney &fмонет")
             }
             if (remainder == 1) {
-                ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Вы получили $bMoney монету")
+                ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&f Вы получили &a&l$bMoney &fмонету")
             }
             if (remainder in 2..4) {
-                ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Вы получили $bMoney монеты")
+                ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&f Вы получили &a&l$bMoney &fмонеты")
             }
         }
     }
