@@ -57,7 +57,17 @@ class KitpvpCommands(
     }
 
 
+<<<<<<< HEAD
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
+=======
+    override fun onCommand(
+        sender: CommandSender,
+        command: Command,
+        label: String,
+        args: Array<out String>
+    ): Boolean {
+
+>>>>>>> 06b73291f0dcbe1bb7296c8036118ae4af142bcf
         if (sender.isOp) {
             if (args.isEmpty() || args[0].equals("help", ignoreCase = true)) {
                 ChatUtil.sendMessage(sender, Tips.KITPVP_HELP_TIPS.tip)
@@ -69,7 +79,11 @@ class KitpvpCommands(
 
                     if (args[0].equals("sign", ignoreCase = true)) {
                         if (args.size == 1 || args.size == 3) {
+<<<<<<< HEAD
                             ChatUtil.sendMessage(sender, Tips.SIGN_TIPS.tip)
+=======
+                            ChatUtil.sendMessage(sender, Tips.SIGNTIPS.tip)
+>>>>>>> 06b73291f0dcbe1bb7296c8036118ae4af142bcf
                         }
                         if (args.size == 2) {
                             if (args[1].equals("work")) {

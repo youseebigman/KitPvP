@@ -43,13 +43,24 @@ class BoosterManager(
             val boosterRemainingTime = booster.remainingTime
             booster.remainingTime -= 1
             val kPlayer = playerService[playerName]
+<<<<<<< HEAD
             if (kPlayer == null) {
                 it.cancel()
             } else {
                 kitPlayer.boosterTime = TimeUnit.SECONDS.toMillis(booster.remainingTime)
                 if (boosterRemainingTime == 0L) {
                     kitPlayer.activeBooster = false
+=======
+            booster.remainingTime -= 1
+            if (kPlayer == null) {
+                it.cancel()
+            } else {
+                kPlayer.boosterTime = TimeUnit.SECONDS.toMillis(booster.remainingTime)
+                if (booster.remainingTime <= 0) {
+                    ChatUtil.sendMessage(player, "&cВремя вашего бустера вышло!")
+>>>>>>> 06b73291f0dcbe1bb7296c8036118ae4af142bcf
                     kitPlayer.localBooster = 1.0
+                    kPlayer.activeBooster = false
                     playerService[playerName] = kitPlayer
                     dataBase.updatePlayer(kitPlayer)
                     ChatUtil.sendMessage(player, "&cВремя вашего бустера вышло!")
