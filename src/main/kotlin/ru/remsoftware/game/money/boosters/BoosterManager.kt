@@ -1,6 +1,7 @@
 package ru.remsoftware.game.money.boosters
 
 import org.bukkit.Bukkit
+import org.bukkit.Sound
 import org.bukkit.entity.Player
 import ru.remsoftware.database.DataBaseRepository
 import ru.remsoftware.game.player.PlayerService
@@ -43,36 +44,21 @@ class BoosterManager(
             val boosterRemainingTime = booster.remainingTime
             booster.remainingTime -= 1
             val kPlayer = playerService[playerName]
-<<<<<<< HEAD
             if (kPlayer == null) {
                 it.cancel()
             } else {
                 kitPlayer.boosterTime = TimeUnit.SECONDS.toMillis(booster.remainingTime)
                 if (boosterRemainingTime == 0L) {
                     kitPlayer.activeBooster = false
-=======
-            booster.remainingTime -= 1
-            if (kPlayer == null) {
-                it.cancel()
-            } else {
-                kPlayer.boosterTime = TimeUnit.SECONDS.toMillis(booster.remainingTime)
-                if (booster.remainingTime <= 0) {
-                    ChatUtil.sendMessage(player, "&cВремя вашего бустера вышло!")
->>>>>>> 06b73291f0dcbe1bb7296c8036118ae4af142bcf
                     kitPlayer.localBooster = 1.0
-                    kPlayer.activeBooster = false
                     playerService[playerName] = kitPlayer
                     dataBase.updatePlayer(kitPlayer)
                     ChatUtil.sendMessage(player, "&cВремя вашего бустера вышло!")
+                    player.playSound(player.eyeLocation, Sound.BLOCK_LAVA_EXTINGUISH, 1f, 1f)
                     it.cancel()
                 }
             }
-
-
         }
-
-
     }
-
-
 }
+
