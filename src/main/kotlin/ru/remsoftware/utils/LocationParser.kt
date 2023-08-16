@@ -10,7 +10,7 @@ class LocationParser {
 
     fun locToStr(loc: Location): String = "${loc.world.name}:${loc.blockX}:${loc.blockY}:${loc.blockZ}"
 
-    fun locStrToLoc(loc: String): Location {
+    fun strToLoc(loc: String): Location {
         val parts: List<String> = loc.split(":")
         val world: World = Bukkit.getServer().getWorld(parts[0])
         val x: Double = parts[1].toDouble()

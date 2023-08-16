@@ -21,7 +21,7 @@ class BoosterManager(
         val booster = Booster(
             currentTime,
             duration,
-            TimeUnit.MILLISECONDS.toSeconds(duration),
+            duration,
             isLocal,
             playerName
         )
@@ -33,7 +33,20 @@ class BoosterManager(
         dataBase.updatePlayer(kitPlayer)
         val player = Bukkit.getPlayer(playerName)
         startBooster(booster, player)
+        player.playSound(player.eyeLocation, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f)
 
+    }
+
+    fun removeBooster(player: Player) {
+        val playerName = player.name
+        val kitPlayer = playerService[playerName]!!
+        kitPlayer.localBooster = 1.0
+        kitPlayer.activeBooster = false
+        kitPlayer.boosterTime = 0L
+        playerService[playerName] = kitPlayer
+        dataBase.updatePlayer(kitPlayer)
+        ChatUtil.sendMessage(player, "&cВремя вашего бустера вышло!")
+        player.playSound(player.eyeLocation, Sound.BLOCK_LAVA_EXTINGUISH, 1f, 1f)
     }
 
     private fun startBooster(booster: Booster, player: Player) {
@@ -47,14 +60,9 @@ class BoosterManager(
             if (kPlayer == null) {
                 it.cancel()
             } else {
-                kitPlayer.boosterTime = TimeUnit.SECONDS.toMillis(booster.remainingTime)
+                kitPlayer.boosterTime = booster.remainingTime
                 if (boosterRemainingTime == 0L) {
-                    kitPlayer.activeBooster = false
-                    kitPlayer.localBooster = 1.0
-                    playerService[playerName] = kitPlayer
-                    dataBase.updatePlayer(kitPlayer)
-                    ChatUtil.sendMessage(player, "&cВремя вашего бустера вышло!")
-                    player.playSound(player.eyeLocation, Sound.BLOCK_LAVA_EXTINGUISH, 1f, 1f)
+                    removeBooster(player)
                     it.cancel()
                 }
             }

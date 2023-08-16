@@ -1,23 +1,18 @@
 package ru.remsoftware.game.signs
 
-import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
-import org.bukkit.World
 import org.bukkit.block.Block
 import org.bukkit.block.Sign
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerInteractEvent
-import org.bukkit.event.server.PluginDisableEvent
-import org.bukkit.event.server.PluginEnableEvent
 import ru.remsoftware.database.DataBaseRepository
 import ru.remsoftware.game.money.MoneyManager
-import ru.remsoftware.game.player.KitPlayer
 import ru.remsoftware.utils.LocationParser
 import ru.remsoftware.utils.Logger
-import ru.starfarm.core.CorePlugin
+import ru.remsoftware.utils.VariationMessages
 import ru.starfarm.core.task.GlobalTaskContext
 import ru.starfarm.core.util.format.ChatUtil
 import ru.tinkoff.kora.common.Component
@@ -26,7 +21,6 @@ import java.util.*
 
 @Component
 class SignService(
-    private val database: DataBaseRepository,
     private val moneyManager: MoneyManager,
     private val locParse: LocationParser,
 ) : Listener {
@@ -57,6 +51,7 @@ class SignService(
     fun set(loc: Location, data: MoneySignEntity) {
         moneySignsCache[loc] = data
     }
+
     fun all(): MutableCollection<MoneySignEntity> = Collections.unmodifiableCollection(moneySignsCache.values)
 
     fun getWorkers() = signWorkers
@@ -97,26 +92,18 @@ class SignService(
                         restore(moneySign)
                         moneyManager.addMoney(player.name, moneySign.reward, player)
                     } else {
-                        val remainder = moneySign.remainingTime % 10
-                        if (remainder == 0L || remainder > 4) {
-                            ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Вы сможете забрать награду через ${moneySign.remainingTime} секунд")
-                        }
-                        if (remainder == 1L) {
-                            ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Вы сможете забрать награду через ${moneySign.remainingTime} секунду")
-                        }
-                        if (remainder in 2L..4L) {
-                            ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Вы сможете забрать награду через ${moneySign.remainingTime} секунды")
-                        }
+                        VariationMessages.sendMessageWithVariants(moneySign.remainingTime.toInt(), player, "cooldown")
                     }
                 }
             }
         }
     }
+
     fun moneySignsLoader(logger: Logger, database: DataBaseRepository) {
         val signsListLoader = SignsLoader(logger, database)
         val signsDataList = signsListLoader.moneySigns
         for (sing in signsDataList) {
-            val loc = locParse.locStrToLoc(sing.location)
+            val loc = locParse.strToLoc(sing.location)
             val signsData = MoneySignEntity(loc, sing.reward, sing.status, sing.cooldown, sing.remainingTime)
             moneySignsCache[loc] = signsData
             if (!signsData.status) {
@@ -127,7 +114,7 @@ class SignService(
 
     fun createSign(database: DataBaseRepository, sign: Block, reward: Int, cooldown: Long, player: Player) {
         if (moneySignsCache.containsKey(sign.location)) {
-            ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c&lУ этой таблички уже установлены данные, вы можете их обновить")
+            ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c&lУ этой таблички уже установлены данные, чтобы обновить их напишите /kitpvp sign update")
         } else {
             val dataLocation = locParse.locToStr(sign.location)
             val cooldownMillis = cooldown * 1000
@@ -152,9 +139,14 @@ class SignService(
         val moneySignEntity = MoneySignEntity(sign.location, reward, true, cooldownMillis, 0)
         moneySignsCache[sign.location] = moneySignEntity
         database.updateSignData(moneySignData)
+        val signState = sign.state
+        if (signState is Sign) {
+            signState.setLine(1, "Забрать")
+            signState.setLine(2, "Награду")
+            signState.update()
+        }
+        ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&a&L Вы успешно обновили табличку")
     }
-
-
 
 
 }
