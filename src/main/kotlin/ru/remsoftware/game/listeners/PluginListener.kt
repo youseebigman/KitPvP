@@ -1,5 +1,7 @@
 package ru.remsoftware.game.listeners
 
+import org.bukkit.Bukkit
+import org.bukkit.World
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.server.PluginDisableEvent
@@ -8,7 +10,9 @@ import ru.remsoftware.database.DataBaseRepository
 import ru.remsoftware.game.player.PlayerService
 import ru.remsoftware.game.signs.MoneySignData
 import ru.remsoftware.game.signs.SignService
-import ru.remsoftware.utils.LocationParser
+import ru.remsoftware.server.ServerInfoData
+import ru.remsoftware.server.ServerInfoService
+import ru.remsoftware.utils.parser.LocationParser
 import ru.remsoftware.utils.Logger
 import ru.tinkoff.kora.common.Component
 
@@ -19,14 +23,21 @@ class PluginListener(
     private val logger: Logger,
     private val signService: SignService,
     private val playerService: PlayerService,
+    private val serverInfoService: ServerInfoService,
 ) : Listener {
+    var world: World? = null
 
     @EventHandler
     fun onPluginEnabled(event: PluginEnableEvent) {
+        world = Bukkit.getServer().getWorld("world")
+        serverInfoService.serverInfo = serverInfoService.loadInfo(world!!, database, locParse)
         signService.moneySignsLoader(logger, database)
     }
     @EventHandler
     fun onPluginDisable(event: PluginDisableEvent) {
+        val serverInfo = serverInfoService.serverInfo
+        val serverData = ServerInfoData(locParse.locToStr(serverInfo!!.spawn), serverInfo.globalBooster)
+        database.updateServerData(world!!.name, serverData)
         for (player in playerService.all()) {
             database.updatePlayer(player)
             logger.log("Saving data for ${player.name}")

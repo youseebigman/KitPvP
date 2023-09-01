@@ -8,7 +8,9 @@ import ru.remsoftware.database.DataBaseRepository
 import ru.remsoftware.game.player.PlayerService
 import ru.remsoftware.utils.Logger
 import ru.remsoftware.utils.VariationMessages
+import ru.tinkoff.kora.common.Component
 
+@Component
 class PlayersDeathListener(
     private val playerService: PlayerService,
     private val database: DataBaseRepository,
@@ -20,6 +22,8 @@ class PlayersDeathListener(
         event.deathMessage = null
         val killer = event.entity.killer
         val victim = event.entity.player
+        victim.spigot().respawn()
+        playerService.moveToSpawn(victim)
         val ld = victim.lastDamageCause
         if (killer != null) {
             handleStatsOnKill(killer, victim)
@@ -27,7 +31,7 @@ class PlayersDeathListener(
             val victimData = playerService[victim]!!
             victimData.deaths += 1
             playerService[victim.name] = victimData
-            println("${victim.name} умер от $ld")
+            logger.log("${victim.name} умер от $ld")
         }
     }
 

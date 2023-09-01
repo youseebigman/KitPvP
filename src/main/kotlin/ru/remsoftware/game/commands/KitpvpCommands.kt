@@ -2,21 +2,21 @@ package ru.remsoftware.game.commands
 
 import org.bukkit.Bukkit
 import org.bukkit.Sound
+import org.bukkit.attribute.Attribute
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
-import org.bukkit.command.TabExecutor
 import org.bukkit.entity.Player
 import ru.remsoftware.database.DataBaseRepository
 import ru.remsoftware.game.Tips
 import ru.remsoftware.game.money.boosters.BoosterManager
-import ru.remsoftware.game.player.KitPlayer
 import ru.remsoftware.game.player.PlayerService
 import ru.remsoftware.game.signs.SignService
+import ru.remsoftware.server.ServerInfoService
+import ru.remsoftware.utils.parser.LocationParser
 import ru.remsoftware.utils.Logger
 import ru.starfarm.core.util.format.ChatUtil
 import ru.tinkoff.kora.common.Component
-import java.util.concurrent.TimeUnit
 
 @Component
 class KitpvpCommands(
@@ -25,6 +25,8 @@ class KitpvpCommands(
     private val logger: Logger,
     private val database: DataBaseRepository,
     private val signService: SignService,
+    private val locationParser: LocationParser,
+    private val serverInfoService: ServerInfoService,
 ) : CommandExecutor {
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
@@ -170,6 +172,18 @@ class KitpvpCommands(
                             }
                         }
                     }
+                    if (args[0].equals("server", ignoreCase = true)) {
+                        if (args.size == 1) {
+                            ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&e /k server setspawn - установить спавн")
+                        }
+                        if (args.size == 2) {
+                            if (args[1].equals("setspawn", ignoreCase = true)) {
+                                val loc = player.location
+                                serverInfoService.serverInfo!!.spawn = loc
+                                database.updateSpawn(loc.world.name, locationParser.locToStr(loc))
+                            }
+                        }
+                    }
                     if (args[0].equals("playsound", ignoreCase = true)) {
                         if (args.size == 2) {
                             val sound = Sound.valueOf(args[1])
@@ -182,6 +196,25 @@ class KitpvpCommands(
                             val pitch = args[3].toFloat()
                             player.playSound(player.eyeLocation, sound, volume, pitch)
 
+                        }
+                    }
+                    if (args[0].equals("sup", ignoreCase = true)) {
+                        if (args.size == 3) {
+                            if (args[1].equals("sethealth", ignoreCase = true)) {
+                                val hp = args[2].toDouble()
+                                player.getAttribute(Attribute.GENERIC_MAX_HEALTH).baseValue = hp
+                                player.health = hp
+                            }
+                        }
+                        if (args.size == 4) {
+                            val target = Bukkit.getPlayer(args[2])
+                            if (target != null) {
+                                val hp = args[2].toDouble()
+                                player.getAttribute(Attribute.GENERIC_MAX_HEALTH).baseValue = hp
+                                player.health = hp
+                            } else {
+                                ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]е&cДанного игрока нету на сервере!")
+                            }
                         }
                     }
                 }

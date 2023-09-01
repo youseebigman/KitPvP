@@ -50,12 +50,12 @@ val koraVersion = "0.12.0"
 
 repositories.addAll(buildscript.repositories)
 dependencies {
-    val kora = platform("ru.tinkoff.kora:kora-parent:$koraVersion")
     compileOnly("org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT")
     compileOnly("com.destroystokyo.paper", "paper-api", "1.12.2-R0.1-SNAPSHOT")
     compileOnly("ru.starfarm:core:1.3.75")
     implementation("mysql:mysql-connector-java:8.0.28")
 
+    val kora = platform("ru.tinkoff.kora:kora-parent:$koraVersion")
     implementation("com.google.devtools.ksp:symbol-processing-api:1.8.10-1.0.9")
     implementation(kora)
     ksp(kora)

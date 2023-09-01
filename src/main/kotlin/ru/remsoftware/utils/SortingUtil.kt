@@ -15,7 +15,7 @@ object SortingUtil {
         val returnedList: MutableList<String> = mutableListOf()
 
         for (word in list) {
-            if (word.contains(letters.uppercase())) {
+            if (word.contains(letters, ignoreCase = true)) {
                 returnedList.add(word)
             }
         }

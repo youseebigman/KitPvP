@@ -14,7 +14,7 @@ class KitpvpTabComplete : TabCompleter {
     override fun onTabComplete(sender: CommandSender?, command: Command, alias: String?, args: Array<out String>): MutableList<String>? {
         if (command.name.lowercase().equals("kitpvp")) {
             if (args.size == 1) {
-                val commandList = listOf("booster", "sign", "player", "playsound")
+                val commandList = listOf("booster", "sign", "player", "playsound", "server", "sup")
                 val startArgs = args[0]
                 return SortingUtil.sortListWithStartLetters(commandList, startArgs)
             }
@@ -42,6 +42,16 @@ class KitpvpTabComplete : TabCompleter {
                     }
                     return SortingUtil.sortListWithStartLetters(soundsList, letters)
                 }
+                if (args[0].equals("server", ignoreCase = true)) {
+                    val commandList = listOf("setspawn")
+                    val startArgs = args[1]
+                    return SortingUtil.sortListWithStartLetters(commandList, startArgs)
+                }
+                if (args[0].equals("sup", ignoreCase = true)) {
+                    val commandList = listOf("sethealth")
+                    val startArgs = args[1]
+                    return SortingUtil.sortListWithStartLetters(commandList, startArgs)
+                }
             }
             if (args.size == 3) {
                 if (args[0].equals("booster", ignoreCase = true)) {
@@ -50,7 +60,13 @@ class KitpvpTabComplete : TabCompleter {
 
                     return SortingUtil.sortListWithStartLetters(playersList, startArgs)
                 }
-                if (args[0].equals("player", ignoreCase = true)) {
+                if (args[1].equals("check", ignoreCase = true)) {
+                    val playersList = PlayersUtil.getOnlinePlayersName()
+                    val startArgs = args[2]
+
+                    return SortingUtil.sortListWithStartLetters(playersList, startArgs)
+                }
+                if (args[1].equals("sethealth", ignoreCase = true)) {
                     val playersList = PlayersUtil.getOnlinePlayersName()
                     val startArgs = args[2]
 

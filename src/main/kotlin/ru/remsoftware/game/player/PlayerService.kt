@@ -1,29 +1,35 @@
 package ru.remsoftware.game.player
 
 import org.bukkit.Bukkit
+import org.bukkit.Location
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
-import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent
+import org.bukkit.event.player.PlayerKickEvent
 import org.bukkit.event.player.PlayerQuitEvent
+import org.bukkit.event.player.PlayerRespawnEvent
 import ru.remsoftware.database.DataBaseRepository
+import ru.remsoftware.server.ServerInfoService
+import ru.remsoftware.utils.parser.InventoryParser
+import ru.remsoftware.utils.parser.LocationParser
 import ru.remsoftware.utils.Logger
-import ru.starfarm.core.ApiManager
+import ru.remsoftware.utils.parser.GameDataParser
+import ru.remsoftware.utils.parser.PotionEffectParser
 import ru.starfarm.core.task.GlobalTaskContext
-import ru.starfarm.core.util.format.ChatUtil
-import ru.starfarm.core.util.number.NumberUtil
 import ru.tinkoff.kora.common.Component
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import java.util.*
 
 @Component
 class PlayerService(
     private val database: DataBaseRepository,
     private val logger: Logger,
+    private val serverInfoService: ServerInfoService,
+    private val locParse: LocationParser,
+    private val inventoryParser: InventoryParser,
+    private val potionEffectParser: PotionEffectParser,
+    private val gameDataParser: GameDataParser,
 ) : Listener {
 
     private val players = hashMapOf<String, KitPlayer>()
@@ -43,31 +49,36 @@ class PlayerService(
     init {
         GlobalTaskContext.every(600 * 20, 600 * 20) {
             val onlinePlayers = Bukkit.getOnlinePlayers()
-            val onlinePlayersList: MutableList<String> = mutableListOf()
+            val onlinePlayersName: MutableList<String> = mutableListOf()
             val playersInCache: MutableList<String> = mutableListOf()
+            val invalidateList = mutableListOf<String>()
+
             for (player in onlinePlayers) {
-                onlinePlayersList.add(player.name)
+                onlinePlayersName.add(player.name)
             }
             for (player in players) {
                 val name = player.key
                 playersInCache.add(name)
             }
-            val invalidateList = mutableListOf<String>()
             playersInCache.forEach {
-                if (it !in onlinePlayersList) {
+                if (it !in onlinePlayersName) {
+                    database.updatePlayer(get(it)!!)
                     invalidateList.add(it)
                 }
             }
             for (player in invalidateList) {
                 invalidate(player)
             }
+            for (player in players) {
+                database.updatePlayer(player.value)
+            }
             if (invalidateList.isEmpty()) {
+                playersInCache.clear()
                 logger.log("Недействительного кэша игроков не найдено")
             } else {
                 logger.log("Список игроков удалённых из кэша: $invalidateList")
-            }
-            for (player in players) {
-                database.updatePlayer(player.value)
+                playersInCache.clear()
+                invalidateList.clear()
             }
         }
     }
@@ -77,23 +88,71 @@ class PlayerService(
         val playerName = event.name
         val playerData = playerDataLoad(playerName)
         players[playerName] = playerData
-        logger.log("Player data loaded for $playerName \n $playerData")
+        logger.log("Player data loaded for $playerName")
     }
 
 
     @EventHandler
     fun onPlayerQuit(event: PlayerQuitEvent) {
-        val player = event.player
-        val name = player.name
-        database.updatePlayer(players[name]!!)
+        val name = event.player.name
+        savePlayerGameData(event.player)
         logger.log("Update players data for $name")
         invalidate(name)
     }
 
-    fun playerDataLoad(playerName: String): KitPlayer {
-        val kitPlayer = PlayerLoader(playerName, database)
-        return KitPlayer(kitPlayer.name, kitPlayer.kit, kitPlayer.money, kitPlayer.donateGroup, kitPlayer.arena, kitPlayer.currentKills, kitPlayer.kills, kitPlayer.deaths, kitPlayer.localBooster, kitPlayer.activeBooster, kitPlayer.boosterTime)
+    @EventHandler
+    fun onPlayerKickEvent(event: PlayerKickEvent) {
+        val name = event.player.name
+        savePlayerGameData(event.player)
+        logger.log("Update players data for $name")
+        invalidate(name)
     }
 
+    @EventHandler
+    fun onPlayerRespawn(event: PlayerRespawnEvent) {
+        GlobalTaskContext.after(1) {
+            moveToSpawn(event.player)
+        }
+
+    }
+
+    fun savePlayerGameData(player: Player) {
+        val kitPlayer = players[player.name]!!
+        kitPlayer.gameData = gameDataParser.gameDataToJson(player)
+        kitPlayer.potionEffects = potionEffectParser.effectsToJson(player)
+        kitPlayer.position = locParse.locToStr(player.location)
+        kitPlayer.inventory = inventoryParser.inventoryToJson(player.inventory)
+        database.updatePlayer(kitPlayer)
+    }
+
+    fun playerDataLoad(playerName: String): KitPlayer {
+        val kitPlayer = PlayerLoader(playerName, database)
+        return KitPlayer(
+            kitPlayer.name,
+            kitPlayer.gameData,
+            kitPlayer.potionEffects,
+            kitPlayer.kit,
+            kitPlayer.money,
+            kitPlayer.donateGroup,
+            kitPlayer.arena,
+            kitPlayer.currentKills,
+            kitPlayer.kills,
+            kitPlayer.deaths,
+            kitPlayer.localBooster,
+            kitPlayer.activeBooster,
+            kitPlayer.boosterTime,
+            kitPlayer.position,
+            kitPlayer.inventory
+        )
+    }
+
+    fun moveToSpawn(player: Player) {
+        player.teleport(serverInfoService.serverInfo!!.spawn)
+    }
+
+
+    fun moveToOwnPosition(player: Player, pos: Location) {
+        player.teleport(pos)
+    }
 
 }

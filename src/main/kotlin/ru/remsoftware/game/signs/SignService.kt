@@ -10,7 +10,7 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerInteractEvent
 import ru.remsoftware.database.DataBaseRepository
 import ru.remsoftware.game.money.MoneyManager
-import ru.remsoftware.utils.LocationParser
+import ru.remsoftware.utils.parser.LocationParser
 import ru.remsoftware.utils.Logger
 import ru.remsoftware.utils.VariationMessages
 import ru.starfarm.core.task.GlobalTaskContext
@@ -25,7 +25,7 @@ class SignService(
     private val locParse: LocationParser,
 ) : Listener {
 
-    val moneySignsCache = hashMapOf<Location, MoneySignEntity>()
+    private val moneySignsCache = hashMapOf<Location, MoneySignEntity>()
     private val signWorkers = mutableListOf<String>()
     private var selectedSign: Block? = null
     private var signRestorer = mutableListOf<MoneySignEntity>()
