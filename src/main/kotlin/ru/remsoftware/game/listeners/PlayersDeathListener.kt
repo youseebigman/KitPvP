@@ -5,6 +5,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.PlayerDeathEvent
 import ru.remsoftware.database.DataBaseRepository
+import ru.remsoftware.game.InventoryManager
 import ru.remsoftware.game.player.PlayerService
 import ru.remsoftware.utils.Logger
 import ru.remsoftware.utils.VariationMessages
@@ -20,10 +21,13 @@ class PlayersDeathListener(
     @EventHandler
     fun onPlayerDeath(event: PlayerDeathEvent) {
         event.deathMessage = null
+        event.drops.clear()
+        event.droppedExp = 0
         val killer = event.entity.killer
         val victim = event.entity.player
-        victim.spigot().respawn()
-        playerService.moveToSpawn(victim)
+        for (potionEffect in victim.activePotionEffects) {
+            victim.removePotionEffect(potionEffect.type)
+        }
         val ld = victim.lastDamageCause
         if (killer != null) {
             handleStatsOnKill(killer, victim)

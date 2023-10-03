@@ -43,7 +43,7 @@ class KitpvpTabComplete : TabCompleter {
                     return SortingUtil.sortListWithStartLetters(soundsList, letters)
                 }
                 if (args[0].equals("server", ignoreCase = true)) {
-                    val commandList = listOf("setspawn")
+                    val commandList = listOf("setspawn", "kit")
                     val startArgs = args[1]
                     return SortingUtil.sortListWithStartLetters(commandList, startArgs)
                 }
@@ -71,6 +71,13 @@ class KitpvpTabComplete : TabCompleter {
                     val startArgs = args[2]
 
                     return SortingUtil.sortListWithStartLetters(playersList, startArgs)
+                }
+                if (args[1].equals("kit", ignoreCase = true)) {
+                    val commandList = listOf("get", "create", "update")
+                    val startArgs = args[1]
+                    return SortingUtil.sortListWithStartLetters(commandList, startArgs)
+
+
                 }
             }
         }

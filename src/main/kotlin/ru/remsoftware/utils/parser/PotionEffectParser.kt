@@ -4,16 +4,23 @@ import com.google.gson.*
 import org.bukkit.entity.Player
 import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
+import reactor.core.publisher.Mono
+import ru.remsoftware.game.listeners.PlayerDamageManager
 import ru.tinkoff.kora.common.Component
 
 @Component
-class PotionEffectParser {
+class PotionEffectParser(
+    private val playerDamageManager: PlayerDamageManager,
+) {
 
     fun effectsToJson(player: Player): String {
         val effectsArray = JsonArray()
         val potionEffects = player.activePotionEffects
         for (effect in potionEffects) {
-            val effectObject = JsonObject()
+            if (effect.type.equals(PotionEffectType.ABSORPTION)) {
+                val abs = playerDamageManager.hasAbsorption
+                if (abs != null && !abs) break
+            }
             val effectJson = potionEffectToJson(effect)
             val effectJs = JsonParser().parse(effectJson)
             effectsArray.add(effectJs)
@@ -26,21 +33,36 @@ class PotionEffectParser {
         val effectJsonMap = JsonParser().parse(json)
         val effectObj = effectJsonMap.asJsonArray
         for (effect in effectObj) {
-            val potionEffectObject = effect.asJsonObject
-            val typeId = potionEffectObject.get("effect").asInt
-            val type = PotionEffectType.getById(typeId)
-            val duration = potionEffectObject.get("duration").asInt
-            val amplifier = potionEffectObject.get("amplifier").asInt
-            val ambient = potionEffectObject.get("ambient").asBoolean
-            val particles = potionEffectObject.get("has-particles").asBoolean
-            effectsList.add(PotionEffect(type, duration, amplifier, ambient, particles))
+            if (!effect.equals("null")) {
+                val potionEffectObject = effect.asJsonObject
+                val typeId = potionEffectObject.get("effect").asInt
+                val type = PotionEffectType.getById(typeId)
+                val duration = potionEffectObject.get("duration").asInt
+                val amplifier = potionEffectObject.get("amplifier").asInt
+                val ambient = potionEffectObject.get("ambient").asBoolean
+                val particles = potionEffectObject.get("has-particles").asBoolean
+                effectsList.add(PotionEffect(type, duration, amplifier, ambient, particles))
+            }
         }
         return effectsList
     }
 
     fun potionEffectToJson(potionEffect: PotionEffect): String {
-        val mapEffect = potionEffect.serialize()
-        return Gson().toJson(mapEffect)
+        if (potionEffect.type.equals(PotionEffectType.ABSORPTION)) {
+            val newAmplifier = playerDamageManager.newAmplifier
+            if (newAmplifier != null) {
+                val pe = PotionEffect(PotionEffectType.ABSORPTION, potionEffect.duration, newAmplifier, potionEffect.isAmbient, potionEffect.hasParticles())
+                val peMap = pe.serialize()
+                return Gson().toJson(peMap)
+            } else {
+                val pe = PotionEffect(PotionEffectType.ABSORPTION, potionEffect.duration, potionEffect.amplifier, potionEffect.isAmbient, potionEffect.hasParticles())
+                val peMap = pe.serialize()
+                return Gson().toJson(peMap)
+            }
+        } else {
+            val peMap = potionEffect.serialize()
+            return Gson().toJson(peMap)
+        }
     }
 
 }

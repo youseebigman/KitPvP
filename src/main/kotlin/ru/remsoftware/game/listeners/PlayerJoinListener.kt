@@ -6,6 +6,7 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.inventory.ItemStack
 import ru.remsoftware.game.money.boosters.BoosterManager
+import ru.remsoftware.game.InventoryManager
 import ru.remsoftware.game.player.PlayerScoreboard
 import ru.remsoftware.game.player.PlayerService
 import ru.remsoftware.utils.parser.GameDataParser
@@ -23,6 +24,7 @@ class PlayerJoinListener(
     private val inventoryParser: InventoryParser,
     private val potionEffectParser: PotionEffectParser,
     private val gameDataParser: GameDataParser,
+    private val inventoryManager: InventoryManager,
 ) : Listener {
 
     @EventHandler
@@ -50,7 +52,9 @@ class PlayerJoinListener(
                 player.addPotionEffect(effect)
             }
         }
-        if (kitInv != null) {
+        if (kitInv == null) {
+            inventoryManager.setDefaultInventory(player)
+        } else {
             val inventory = inventoryParser.jsonToInventory(kitInv)
             for (i in 0..40) {
                 val item: ItemStack? = inventory.getItem(i)

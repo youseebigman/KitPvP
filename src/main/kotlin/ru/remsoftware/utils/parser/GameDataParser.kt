@@ -23,6 +23,7 @@ class GameDataParser {
         player.health = health
         player.foodLevel = foodLevel
         player.gameMode = GameMode.getByValue(gameMode)
+
     }
 
 

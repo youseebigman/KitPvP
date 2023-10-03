@@ -1,6 +1,8 @@
 package ru.remsoftware.utils.parser
 
 import com.google.gson.*
+import org.apache.commons.lang.StringEscapeUtils
+import org.apache.commons.lang.StringUtils
 import org.bukkit.Bukkit
 import org.bukkit.Color
 import org.bukkit.Material
@@ -12,8 +14,10 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.LeatherArmorMeta
 import org.bukkit.inventory.meta.PotionMeta
 import org.bukkit.inventory.meta.SkullMeta
+import org.bukkit.potion.PotionData
 import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
+import org.bukkit.potion.PotionType
 import ru.tinkoff.kora.common.Component
 
 
@@ -26,34 +30,36 @@ class InventoryParser {
     fun inventoryToJson(inventory: Inventory): String {
         val gson = Gson()
         val inventoryJson = JsonArray()
-        for (i in 0..40) {
-            var itemStack: ItemStack? = inventory.getItem(i)
-            if (itemStack == null) {
-                itemStack = ItemStack(Material.AIR)
+        val inventoryObject = JsonObject()
+        for (item in inventory) {
+            if (item == null) {
+                val itemJson = itemToJson(ItemStack(Material.AIR))
+                inventoryJson.add(itemJson)
+            } else {
+                val itemJson = itemToJson(item)
+                inventoryJson.add(itemJson)
             }
-            val jsonItem = JsonObject()
-            val item = itemToJson(itemStack)
-            inventoryJson.add(item)
         }
-        return gson.toJson(inventoryJson)
+        inventoryObject.add("inventory", inventoryJson)
+        inventoryObject.addProperty("inventory_type", inventory.type.name)
+        return gson.toJson(inventoryObject)
     }
 
     fun jsonToInventory(json: String): Inventory {
         val parser = JsonParser()
-        val inventory = Bukkit.getServer().createInventory(null, InventoryType.PLAYER)
         val inventoryJson = parser.parse(json)
-        if (inventoryJson is JsonArray) {
-            for (i in 0..40) {
-                val jsonItem = inventoryJson.get(i)
-                val itemStack = jsonToItem(jsonItem.toString())
-                inventory.setItem(i, itemStack)
-
-            }
+        val inventoryObject = inventoryJson.asJsonObject
+        val inventoryType = inventoryObject.get("inventory_type").asJsonPrimitive
+        val inventory = Bukkit.getServer().createInventory(null, InventoryType.valueOf(inventoryType.asString))
+        val inventoryArray = inventoryObject.get("inventory").asJsonArray
+        for ((counter, item) in inventoryArray.withIndex()) {
+            val itemStack = jsonToItem(item.asString)
+            inventory.setItem(counter, itemStack)
         }
         return inventory
     }
 
-    fun itemToJson(itemStack: ItemStack): JsonObject {
+    fun itemToJson(itemStack: ItemStack): String {
         val itemJson = JsonObject()
 
         itemJson.addProperty("type", itemStack.type.name)
@@ -82,13 +88,13 @@ class InventoryParser {
                 meta.itemFlags.stream().map { obj: ItemFlag -> obj.name }.forEach { str -> flags.add(JsonPrimitive(str)) }
                 metaJson.add("flags", flags)
             }
-
             for (clazz in BYPASS_CLASS) {
                 if (meta.javaClass.getSimpleName().equals(clazz)) {
                     itemJson.add("item-meta", metaJson)
-                    return itemJson
+                    return Gson().toJson(itemJson)
                 }
             }
+
             if (meta is SkullMeta) {
                 if (meta.hasOwner()) {
                     val extraMeta = JsonObject()
@@ -100,28 +106,50 @@ class InventoryParser {
                 extraMeta.addProperty("color", Integer.toHexString(meta.color.asRGB()))
                 metaJson.add("extra-meta", extraMeta)
             } else if (meta is PotionMeta) {
+                val extraMeta = JsonObject()
                 if (meta.hasCustomEffects()) {
-                    val extraMeta = JsonObject()
                     val customEffects = JsonArray()
                     meta.customEffects.forEach { potionEffect ->
-                        customEffects.add(
-                            JsonPrimitive(
-                                potionEffect.type.name
-                                        + ":" + potionEffect.amplifier
-                                        + ":" + potionEffect.duration / 20
+                        if (meta.color != null) {
+                            customEffects.add(
+                                JsonPrimitive(
+                                    potionEffect.type.name
+                                            + ":" + potionEffect.amplifier
+                                            + ":" + potionEffect.duration / 20
+                                            + ":" + Integer.toHexString(meta.color.asRGB())
+                                )
                             )
-                        )
+                        } else {
+                            customEffects.add(
+                                JsonPrimitive(
+                                    potionEffect.type.name
+                                            + ":" + potionEffect.amplifier
+                                            + ":" + potionEffect.duration / 20
+                                )
+                            )
+                        }
+
                     }
                     extraMeta.add("custom-effects", customEffects)
-                    metaJson.add("extra-meta", extraMeta)
+                } else {
+                    val type: PotionType = meta.basePotionData.type
+                    val isExtended: Boolean = meta.basePotionData.isExtended
+                    val isUpgraded: Boolean = meta.basePotionData.isUpgraded
+                    val baseEffect = JsonObject()
+                    baseEffect.addProperty("type", type.name)
+                    baseEffect.addProperty("isExtended", isExtended)
+                    baseEffect.addProperty("isUpgraded", isUpgraded)
+                    extraMeta.add("base-effect", baseEffect)
                 }
+                metaJson.add("extra-meta", extraMeta)
             }
             itemJson.add("item-meta", metaJson)
         }
-        return itemJson
+        return Gson().toJson(itemJson)
     }
 
     fun jsonToItem(string: String): ItemStack? {
+
         val parser = JsonParser()
         val itemJson = parser.parse(string)
         val itemObj = itemJson.asJsonObject
@@ -179,11 +207,6 @@ class InventoryParser {
                     }
                 }
             }
-            for (clazz in BYPASS_CLASS) {
-                if (meta.javaClass.simpleName.equals(clazz)) {
-                    return itemStack
-                }
-            }
             val extraMetaElement = metaObj.get("extra-meta")
             if (extraMetaElement != null) {
                 val extraJson = extraMetaElement.asJsonObject
@@ -197,7 +220,7 @@ class InventoryParser {
                 } else if (meta is LeatherArmorMeta) {
                     val colorElement = extraJson.get("color")
                     if (colorElement != null && colorElement is JsonPrimitive) {
-                        meta.color = Color.fromRGB(Integer.parseInt(colorElement.asString, 16) )
+                        meta.color = Color.fromRGB(Integer.parseInt(colorElement.asString, 16))
                     }
                 } else if (meta is PotionMeta) {
                     val customEffectsElement = extraJson.get("custom-effects")
@@ -205,23 +228,28 @@ class InventoryParser {
                         customEffectsElement.forEach { jsonElement ->
                             if (jsonElement is JsonPrimitive) {
                                 val enchantString = jsonElement.asString
-                                if (enchantString.contains(":")) {
-                                    val splitEnchant = enchantString.split(":")
-                                    val potionType = PotionEffectType.getByName(splitEnchant[0])
-                                    val amplifier = splitEnchant[1].toInt()
-                                    val duration = splitEnchant[2].toInt() * 20
-                                    if (potionType != null) {
-                                        meta.addCustomEffect(PotionEffect(potionType, amplifier, duration), true)
-                                    }
+                                val splitEnchant = enchantString.split(":")
+                                val potionType = PotionEffectType.getByName(splitEnchant[0])
+                                val amplifier = splitEnchant[1].toInt()
+                                val duration = splitEnchant[2].toInt() * 20
+                                if (splitEnchant.size == 4) {
+                                    meta.color = Color.fromRGB(Integer.parseInt(splitEnchant[3], 16))
                                 }
+                                meta.addCustomEffect(PotionEffect(potionType, duration, amplifier), true)
                             }
                         }
+                    } else {
+                        val basePotion = extraJson.getAsJsonObject("base-effect")
+                        val potionType = PotionType.valueOf(basePotion["type"].asString)
+                        val isExtended = basePotion["isExtended"].asBoolean
+                        val isUpgraded = basePotion["isUpgraded"].asBoolean
+                        val potionData = PotionData(potionType, isExtended, isUpgraded)
+                        meta.basePotionData = potionData
                     }
                 }
             }
             itemStack.itemMeta = meta
         }
         return itemStack
-        return null
     }
 }

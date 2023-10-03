@@ -9,12 +9,14 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import ru.remsoftware.database.DataBaseRepository
 import ru.remsoftware.game.Tips
+import ru.remsoftware.game.kits.KitManager
+import ru.remsoftware.game.kits.KitService
 import ru.remsoftware.game.money.boosters.BoosterManager
 import ru.remsoftware.game.player.PlayerService
 import ru.remsoftware.game.signs.SignService
 import ru.remsoftware.server.ServerInfoService
-import ru.remsoftware.utils.parser.LocationParser
 import ru.remsoftware.utils.Logger
+import ru.remsoftware.utils.parser.LocationParser
 import ru.starfarm.core.util.format.ChatUtil
 import ru.tinkoff.kora.common.Component
 
@@ -27,6 +29,8 @@ class KitpvpCommands(
     private val signService: SignService,
     private val locationParser: LocationParser,
     private val serverInfoService: ServerInfoService,
+    private val kitManager: KitManager,
+    private val kitService: KitService,
 ) : CommandExecutor {
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
@@ -173,15 +177,40 @@ class KitpvpCommands(
                         }
                     }
                     if (args[0].equals("server", ignoreCase = true)) {
-                        if (args.size == 1) {
-                            ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&e /k server setspawn - установить спавн")
+                        if (args.size == 1 || args.size == 3) {
+                            ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&e /k server setspawn - установить спавн \n &8[&b&lKit&4&lPvP&8]&e /k server kit [get|create|update] Название (Цена) - работа с китами")
                         }
                         if (args.size == 2) {
                             if (args[1].equals("setspawn", ignoreCase = true)) {
                                 val loc = player.location
                                 serverInfoService.serverInfo!!.spawn = loc
                                 database.updateSpawn(loc.world.name, locationParser.locToStr(loc))
+                            } else {
+                                ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&e /k server setspawn - установить спавн \n &8[&b&lKit&4&lPvP&8]&e /k server kit [get|create|update] Название (Цена) - работа с китами")
                             }
+                        }
+                        if (args.size == 5) {
+                            if (args[2].equals("create", ignoreCase = true)) {
+                                val kitName = args[3]
+                                val kitPrice = args[4].toInt()
+                                kitManager.createKit(database, player, kitName, kitPrice)
+                                ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&a Вы успешно создали кит!")
+                            } else {
+                                ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&e /k server setspawn - установить спавн \n &8[&b&lKit&4&lPvP&8]&e /k server kit [get|create|update] Название (Цена) - работа с китами")
+                            }
+                        }
+                        if (args.size == 4) {
+                            if (args[2].equals("get", ignoreCase = true)) {
+                                val kit = kitService[args[3]]
+                                if (kit == null) {
+                                    ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Кита с таким названием не существует!")
+                                } else {
+                                    kitManager.setKit(player, kit)
+                                }
+                            } else {
+                                ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&e /k server setspawn - установить спавн \n &8[&b&lKit&4&lPvP&8]&e /k server kit [get|create|update] Название (Цена) - работа с китами")
+                            }
+
                         }
                     }
                     if (args[0].equals("playsound", ignoreCase = true)) {

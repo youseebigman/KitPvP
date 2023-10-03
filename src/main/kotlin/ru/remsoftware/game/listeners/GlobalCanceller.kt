@@ -1,5 +1,6 @@
 package ru.remsoftware.game.listeners
 
+import org.bukkit.Material
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.BlockBreakEvent
@@ -14,8 +15,14 @@ class GlobalCanceller(
 ) : Listener {
     @EventHandler
     fun onBlockBreak(event: BlockBreakEvent) {
+        val block = event.block
         val signWorkers = signService.getWorkers()
         if (event.player.isOp) {
+            if (block.type.equals(Material.SIGN) || block.type.equals(Material.SIGN_POST) || block.type.equals(Material.WALL_SIGN)) {
+                if (!signWorkers.contains(event.player.name)) {
+                    event.isCancelled = true
+                }
+            }
             if (signWorkers.contains(event.player.name)) {
                 event.isCancelled = true
             }

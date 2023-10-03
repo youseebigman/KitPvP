@@ -7,6 +7,7 @@ import org.bukkit.event.Listener
 import org.bukkit.event.server.PluginDisableEvent
 import org.bukkit.event.server.PluginEnableEvent
 import ru.remsoftware.database.DataBaseRepository
+import ru.remsoftware.game.kits.KitService
 import ru.remsoftware.game.player.PlayerService
 import ru.remsoftware.game.signs.MoneySignData
 import ru.remsoftware.game.signs.SignService
@@ -24,6 +25,7 @@ class PluginListener(
     private val signService: SignService,
     private val playerService: PlayerService,
     private val serverInfoService: ServerInfoService,
+    private val kitService: KitService,
 ) : Listener {
     var world: World? = null
 
@@ -32,12 +34,18 @@ class PluginListener(
         world = Bukkit.getServer().getWorld("world")
         serverInfoService.serverInfo = serverInfoService.loadInfo(world!!, database, locParse)
         signService.moneySignsLoader(logger, database)
+        kitService.kitsLoader(database, logger)
     }
     @EventHandler
     fun onPluginDisable(event: PluginDisableEvent) {
         val serverInfo = serverInfoService.serverInfo
-        val serverData = ServerInfoData(locParse.locToStr(serverInfo!!.spawn), serverInfo.globalBooster)
-        database.updateServerData(world!!.name, serverData)
+        if (serverInfo!!.spawn == null) {
+            val serverData = ServerInfoData(null, serverInfo.globalBooster)
+            database.updateServerData(world!!.name, serverData)
+        } else {
+            val serverData = ServerInfoData(locParse.locToStr(serverInfo.spawn!!), serverInfo.globalBooster)
+            database.updateServerData(world!!.name, serverData)
+        }
         for (player in playerService.all()) {
             database.updatePlayer(player)
             logger.log("Saving data for ${player.name}")

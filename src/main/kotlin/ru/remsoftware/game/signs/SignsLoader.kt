@@ -11,7 +11,6 @@ class SignsLoader(
     var moneySigns: List<MoneySignData>
         private set
 
-
     init {
         val moneySignsData = database.loadSignData()
         this.moneySigns = moneySignsData

@@ -11,6 +11,7 @@ import org.bukkit.event.player.PlayerKickEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.player.PlayerRespawnEvent
 import ru.remsoftware.database.DataBaseRepository
+import ru.remsoftware.game.InventoryManager
 import ru.remsoftware.server.ServerInfoService
 import ru.remsoftware.utils.parser.InventoryParser
 import ru.remsoftware.utils.parser.LocationParser
@@ -30,6 +31,7 @@ class PlayerService(
     private val inventoryParser: InventoryParser,
     private val potionEffectParser: PotionEffectParser,
     private val gameDataParser: GameDataParser,
+    private val inventoryManager: InventoryManager,
 ) : Listener {
 
     private val players = hashMapOf<String, KitPlayer>()
@@ -110,18 +112,19 @@ class PlayerService(
 
     @EventHandler
     fun onPlayerRespawn(event: PlayerRespawnEvent) {
+        event.respawnLocation = null
+        inventoryManager.setDefaultInventory(event.player)
         GlobalTaskContext.after(1) {
             moveToSpawn(event.player)
         }
-
     }
 
     fun savePlayerGameData(player: Player) {
         val kitPlayer = players[player.name]!!
         kitPlayer.gameData = gameDataParser.gameDataToJson(player)
+        kitPlayer.inventory = inventoryParser.inventoryToJson(player.inventory)
         kitPlayer.potionEffects = potionEffectParser.effectsToJson(player)
         kitPlayer.position = locParse.locToStr(player.location)
-        kitPlayer.inventory = inventoryParser.inventoryToJson(player.inventory)
         database.updatePlayer(kitPlayer)
     }
 
@@ -147,9 +150,9 @@ class PlayerService(
     }
 
     fun moveToSpawn(player: Player) {
-        player.teleport(serverInfoService.serverInfo!!.spawn)
+        val spawn = serverInfoService.serverInfo!!.spawn
+        if (spawn != null) player.teleport(spawn)
     }
-
 
     fun moveToOwnPosition(player: Player, pos: Location) {
         player.teleport(pos)

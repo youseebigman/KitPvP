@@ -1,5 +1,6 @@
 package ru.remsoftware.database
 
+import ru.remsoftware.game.kits.KitData
 import ru.remsoftware.game.player.KitPlayer
 import ru.remsoftware.game.signs.MoneySignData
 import ru.remsoftware.server.ServerInfoData
@@ -23,11 +24,18 @@ interface DataBaseRepository : JdbcRepository {
     @Query("insert into kitpvp.kit_players (name, money, donate_group, arena, kills, deaths, current_kills, kit, local_booster, active_booster, booster_time) values (:data.name, :data.money, :data.donateGroup, :data.arena, :data.kills, :data.deaths, :data.currentKills, :data.kit, :data.localBooster, :data.activeBooster, :data.boosterTime)")
     fun createPlayer(data: KitPlayer)
 
-    @Query("update kitpvp.kit_players set position = :pos where name = :name")
-    fun updatePosition(name: String, pos: String)
+    //Query for kits data
+    @Query("insert into kitpvp.kits_data (name, inventory, potion_effects, icon, price) values (:data.name, :data.inventory, :data.potionEffects, :data.icon, :data.price)")
+    fun createKit(data: KitData)
 
-    @Query("update kitpvp.kit_players set inventory = :inventory where name = :name")
-    fun updateInventory(name: String, inventory: String)
+    @Query("select name, inventory, potion_effects, icon, price from kitpvp.kits_data")
+    fun loadKitData(): List<KitData>?
+
+    @Query("update kitpvp.kits_data set name = :data.name, inventory = :data.inventory, potion_effects = :data.potionEffects, icon = :data.icon, price = :data.price where name = :data.name")
+    fun updateKitData(data: KitData)
+
+    @Query("delete from kitpvp.kits_data where name = :name")
+    fun removeKitData(name: String)
 
     // Query for signs data
 
