@@ -1,7 +1,5 @@
 package ru.remsoftware.game.player
 
-import org.bukkit.Location
-
 data class KitPlayer(
     var name: String,
     var gameData: String?,
@@ -15,7 +13,8 @@ data class KitPlayer(
     var deaths: Int,
     var localBooster: Double,
     var activeBooster: Boolean,
-    var boosterTime: Long,
+    var boosterTime: Int,
     var position: String?,
     var inventory: String?,
+    val availableKits: String?,
 )

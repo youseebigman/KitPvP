@@ -1,18 +1,13 @@
 package ru.remsoftware.game.signs
 
 import org.bukkit.Location
-import org.bukkit.Material
 import org.bukkit.block.Block
 import org.bukkit.block.Sign
 import org.bukkit.entity.Player
-import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
-import org.bukkit.event.player.PlayerInteractEvent
 import ru.remsoftware.database.DataBaseRepository
-import ru.remsoftware.game.money.MoneyManager
-import ru.remsoftware.utils.parser.LocationParser
 import ru.remsoftware.utils.Logger
-import ru.remsoftware.utils.VariationMessages
+import ru.remsoftware.utils.parser.LocationParser
 import ru.starfarm.core.task.GlobalTaskContext
 import ru.starfarm.core.util.format.ChatUtil
 import ru.tinkoff.kora.common.Component
@@ -21,14 +16,13 @@ import java.util.*
 
 @Component
 class SignService(
-    private val moneyManager: MoneyManager,
     private val locParse: LocationParser,
 ) : Listener {
 
     private val moneySignsCache = hashMapOf<Location, MoneySignEntity>()
-    private val signWorkers = mutableListOf<String>()
-    private var selectedSign: Block? = null
-    private var signRestorer = mutableListOf<MoneySignEntity>()
+    val signWorkers = mutableListOf<String>()
+    var selectedSign: Block? = null
+    var signRestorer = mutableListOf<MoneySignEntity>()
 
     init {
         GlobalTaskContext.every(20, 20) {
@@ -68,35 +62,6 @@ class SignService(
 
     fun restore(moneySign: MoneySignEntity) {
         signRestorer.add(moneySign)
-    }
-
-    @EventHandler
-    fun onPlayerClickOnSign(event: PlayerInteractEvent) {
-        val player = event.player
-        val block = event.clickedBlock
-        if (event.clickedBlock == null || event.clickedBlock.type.equals(Material.AIR)) {
-            return
-        }
-        if (block.type.equals(Material.SIGN) || block.type.equals(Material.SIGN_POST) || block.type.equals(Material.WALL_SIGN)) {
-            if (signWorkers.contains(player.name)) {
-                selectSign(block)
-                ChatUtil.sendMessage(player, "&aВы успешно выбрали табличку, можете присвоить ей данные")
-            } else {
-                val moneySign = get(block.location)
-                if (moneySign == null) {
-                    return
-                } else {
-                    if (moneySign.status) {
-                        moneySign.status = false
-                        moneySign.remainingTime = moneySign.cooldown / 1000
-                        restore(moneySign)
-                        moneyManager.addMoney(player.name, moneySign.reward, player)
-                    } else {
-                        VariationMessages.sendMessageWithVariants(moneySign.remainingTime.toInt(), player, "cooldown")
-                    }
-                }
-            }
-        }
     }
 
     fun moneySignsLoader(logger: Logger, database: DataBaseRepository) {

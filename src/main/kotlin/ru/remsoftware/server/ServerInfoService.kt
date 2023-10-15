@@ -2,8 +2,8 @@ package ru.remsoftware.server
 
 import org.bukkit.World
 import ru.remsoftware.database.DataBaseRepository
-import ru.remsoftware.utils.parser.LocationParser
 import ru.remsoftware.utils.Logger
+import ru.remsoftware.utils.parser.LocationParser
 import ru.tinkoff.kora.common.Component
 
 @Component

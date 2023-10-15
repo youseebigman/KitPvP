@@ -5,7 +5,6 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.PlayerDeathEvent
 import ru.remsoftware.database.DataBaseRepository
-import ru.remsoftware.game.InventoryManager
 import ru.remsoftware.game.player.PlayerService
 import ru.remsoftware.utils.Logger
 import ru.remsoftware.utils.VariationMessages
@@ -34,6 +33,7 @@ class PlayersDeathListener(
         } else {
             val victimData = playerService[victim]!!
             victimData.deaths += 1
+            victimData.kit = "default"
             playerService[victim.name] = victimData
             logger.log("${victim.name} умер от $ld")
         }

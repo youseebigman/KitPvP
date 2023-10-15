@@ -30,17 +30,19 @@ class PlayerLoader(
         private set
     var activeBooster: Boolean = false
         private set
-    var boosterTime: Long = 0L
+    var boosterTime: Int = 0
         private set
     var position: String? = null
         private set
     var inventory: String? = null
         private set
+    var availableKits: String? = null
+        private set
 
     init {
         var playerData = dataBase.loadPlayerData(name)
         if (playerData == null) {
-            playerData = KitPlayer(name, gameData, potionEffects, kit, money, donateGroup, arena, kills, currentKills, deaths, localBooster, activeBooster, boosterTime, position, inventory)
+            playerData = KitPlayer(name, gameData, potionEffects, kit, money, donateGroup, arena, kills, currentKills, deaths, localBooster, activeBooster, boosterTime, position, inventory, availableKits)
             dataBase.createPlayer(playerData)
         }
         this.name = playerData.name
@@ -58,6 +60,7 @@ class PlayerLoader(
         this.boosterTime = playerData.boosterTime
         this.position = playerData.position
         this.inventory = playerData.inventory
+        this.availableKits = playerData.availableKits
     }
 
 

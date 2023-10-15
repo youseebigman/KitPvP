@@ -52,7 +52,7 @@ repositories.addAll(buildscript.repositories)
 dependencies {
     compileOnly("org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT")
     compileOnly("com.destroystokyo.paper", "paper-api", "1.12.2-R0.1-SNAPSHOT")
-    compileOnly("ru.starfarm:core:1.3.75")
+    compileOnly("ru.starfarm:core:1.3.80")
     implementation("mysql:mysql-connector-java:8.0.28")
 
     val kora = platform("ru.tinkoff.kora:kora-parent:$koraVersion")

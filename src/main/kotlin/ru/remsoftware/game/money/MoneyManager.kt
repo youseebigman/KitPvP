@@ -11,21 +11,44 @@ class MoneyManager(
     private val database: DataBaseRepository,
     private val playerService: PlayerService,
 ) {
-
-    fun addMoney(name: String, amount: Int, player: Player) {
-        val playerData = playerService[name]
+    fun removeMoney(player: Player, amount: Int) {
+        val playerData = playerService[player.name]
         if (playerData == null) {
-            val offlinePlayerData = playerService.playerDataLoad(name)
+            val offlinePlayerData = playerService.playerDataLoad(player.name)
+            val currentMoney = offlinePlayerData.money
+            val newMoney = currentMoney - amount
+            database.updateMoney(player.name, newMoney)
+        } else {
+            val currentMoney = playerData.money
+            val newMoney = currentMoney - amount
+            playerData.money = newMoney
+            playerService[player.name] = playerData
+            val remainder = amount % 10
+            if (remainder == 0 || remainder > 4) {
+                ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&f Вы потратили &a&l$amount &fмонет")
+            }
+            if (remainder == 1) {
+                ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&f Вы потратили &a&l$amount &fмонету")
+            }
+            if (remainder in 2..4) {
+                ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&f Вы потратили &a&l$amount &fмонеты")
+            }
+        }
+    }
+    fun addMoneyWithBoost(amount: Int, player: Player) {
+        val playerData = playerService[player.name]
+        if (playerData == null) {
+            val offlinePlayerData = playerService.playerDataLoad(player.name)
             val currentMoney = offlinePlayerData.money
             val newMoney = currentMoney + amount
-            database.updateMoney(name, newMoney)
+            database.updateMoney(player.name, newMoney)
         } else {
             val currentMoney = playerData.money
             val booster = playerData.localBooster
             val bMoney = boostMoney(amount, booster)
             val newMoney = currentMoney + bMoney
             playerData.money = newMoney
-            playerService[name] = playerData
+            playerService[player.name] = playerData
             val remainder = bMoney % 10
             if (remainder == 0 || remainder > 4) {
                 ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&f Вы получили &a&l$bMoney &fмонет")
@@ -36,6 +59,20 @@ class MoneyManager(
             if (remainder in 2..4) {
                 ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&f Вы получили &a&l$bMoney &fмонеты")
             }
+        }
+    }
+    fun addMoney(amount: Int, player: Player) {
+        val playerData = playerService[player.name]
+        if (playerData == null) {
+            val offlinePlayerData = playerService.playerDataLoad(player.name)
+            val currentMoney = offlinePlayerData.money
+            val newMoney = currentMoney + amount
+            database.updateMoney(player.name, newMoney)
+        } else {
+            val currentMoney = playerData.money
+            val newMoney = currentMoney + amount
+            playerData.money = newMoney
+            playerService[player.name] = playerData
         }
     }
 

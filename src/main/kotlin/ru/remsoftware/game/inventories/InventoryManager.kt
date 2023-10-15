@@ -1,9 +1,9 @@
-package ru.remsoftware.game
+package ru.remsoftware.game.inventories
 
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
-import ru.starfarm.core.util.item.name
+import ru.starfarm.core.util.format.ChatUtil
 import ru.tinkoff.kora.common.Component
 
 @Component
@@ -13,7 +13,7 @@ class InventoryManager {
     init {
         itemMenu = ItemStack(Material.COMPASS)
         val itemMeta = itemMenu.itemMeta
-        itemMeta.displayName = "Меню"
+        itemMeta.displayName = ChatUtil.color("§bМеню")
         itemMenu.itemMeta = itemMeta
     }
 

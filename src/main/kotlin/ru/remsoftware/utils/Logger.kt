@@ -1,7 +1,6 @@
 package ru.remsoftware.utils
 
 import org.bukkit.plugin.java.JavaPlugin
-import ru.starfarm.core.CorePlugin
 import ru.tinkoff.kora.common.Component
 import java.util.logging.Logger
 

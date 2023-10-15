@@ -8,7 +8,6 @@ import ru.remsoftware.game.player.PlayerService
 import ru.starfarm.core.task.GlobalTaskContext
 import ru.starfarm.core.util.format.ChatUtil
 import ru.tinkoff.kora.common.Component
-import java.util.concurrent.TimeUnit
 
 @Component
 class BoosterManager(
@@ -16,7 +15,7 @@ class BoosterManager(
     private val dataBase: DataBaseRepository,
 ) {
 
-    fun createBooster(duration: Long, isLocal: Boolean, playerName: String) {
+    fun createBooster(duration: Int, isLocal: Boolean, playerName: String) {
         val currentTime = System.currentTimeMillis()
         val booster = Booster(
             currentTime,
@@ -42,10 +41,10 @@ class BoosterManager(
         val kitPlayer = playerService[playerName]!!
         kitPlayer.localBooster = 1.0
         kitPlayer.activeBooster = false
-        kitPlayer.boosterTime = 0L
+        kitPlayer.boosterTime = 0
         playerService[playerName] = kitPlayer
         dataBase.updatePlayer(kitPlayer)
-        ChatUtil.sendMessage(player, "&cВремя вашего бустера вышло!")
+        ChatUtil.sendMessage(player, "&&8[&b&lKit&4&lPvP&8]&c&lВремя вашего бустера вышло!")
         player.playSound(player.eyeLocation, Sound.BLOCK_LAVA_EXTINGUISH, 1f, 1f)
     }
 
@@ -56,12 +55,11 @@ class BoosterManager(
         GlobalTaskContext.everyAsync(1, 20) {
             val boosterRemainingTime = booster.remainingTime
             booster.remainingTime -= 1
-            val kPlayer = playerService[playerName]
-            if (kPlayer == null) {
+            if (!Bukkit.getServer().onlinePlayers.contains(player)) {
                 it.cancel()
             } else {
                 kitPlayer.boosterTime = booster.remainingTime
-                if (boosterRemainingTime == 0L) {
+                if (boosterRemainingTime == 0) {
                     removeBooster(player)
                     it.cancel()
                 }

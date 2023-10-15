@@ -1,8 +1,6 @@
 package ru.remsoftware.utils.parser
 
 import com.google.gson.*
-import org.apache.commons.lang.StringEscapeUtils
-import org.apache.commons.lang.StringUtils
 import org.bukkit.Bukkit
 import org.bukkit.Color
 import org.bukkit.Material
@@ -148,7 +146,7 @@ class InventoryParser {
         return Gson().toJson(itemJson)
     }
 
-    fun jsonToItem(string: String): ItemStack? {
+    fun jsonToItem(string: String): ItemStack {
 
         val parser = JsonParser()
         val itemJson = parser.parse(string)

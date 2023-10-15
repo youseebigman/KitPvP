@@ -5,8 +5,8 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.inventory.ItemStack
+import ru.remsoftware.game.inventories.InventoryManager
 import ru.remsoftware.game.money.boosters.BoosterManager
-import ru.remsoftware.game.InventoryManager
 import ru.remsoftware.game.player.PlayerScoreboard
 import ru.remsoftware.game.player.PlayerService
 import ru.remsoftware.utils.parser.GameDataParser
@@ -37,9 +37,6 @@ class PlayerJoinListener(
         val position = kitPlayer.position
         val kitInv = kitPlayer.inventory
         playerScoreboard.loadScoreboard(player)
-        if (gameData != null) {
-            gameDataParser.jsonToGameData(gameData, player)
-        }
         if (position == null) {
             playerService.moveToSpawn(player)
         } else {
@@ -51,6 +48,9 @@ class PlayerJoinListener(
             for (effect in effects) {
                 player.addPotionEffect(effect)
             }
+        }
+        if (gameData != null) {
+            gameDataParser.jsonToGameData(gameData, player)
         }
         if (kitInv == null) {
             inventoryManager.setDefaultInventory(player)

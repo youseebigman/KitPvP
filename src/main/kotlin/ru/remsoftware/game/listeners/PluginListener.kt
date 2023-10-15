@@ -9,12 +9,13 @@ import org.bukkit.event.server.PluginEnableEvent
 import ru.remsoftware.database.DataBaseRepository
 import ru.remsoftware.game.kits.KitService
 import ru.remsoftware.game.player.PlayerService
+import ru.remsoftware.game.potions.PotionService
 import ru.remsoftware.game.signs.MoneySignData
 import ru.remsoftware.game.signs.SignService
 import ru.remsoftware.server.ServerInfoData
 import ru.remsoftware.server.ServerInfoService
-import ru.remsoftware.utils.parser.LocationParser
 import ru.remsoftware.utils.Logger
+import ru.remsoftware.utils.parser.LocationParser
 import ru.tinkoff.kora.common.Component
 
 @Component
@@ -26,6 +27,7 @@ class PluginListener(
     private val playerService: PlayerService,
     private val serverInfoService: ServerInfoService,
     private val kitService: KitService,
+    private val potionService: PotionService,
 ) : Listener {
     var world: World? = null
 
@@ -35,6 +37,7 @@ class PluginListener(
         serverInfoService.serverInfo = serverInfoService.loadInfo(world!!, database, locParse)
         signService.moneySignsLoader(logger, database)
         kitService.kitsLoader(database, logger)
+        potionService.potionDataLoad(database, logger)
     }
     @EventHandler
     fun onPluginDisable(event: PluginDisableEvent) {
@@ -48,6 +51,7 @@ class PluginListener(
         }
         for (player in playerService.all()) {
             database.updatePlayer(player)
+            playerService.savePlayerGameData(Bukkit.getPlayer(player.name))
             logger.log("Saving data for ${player.name}")
         }
         for (sign in signService.all()) {

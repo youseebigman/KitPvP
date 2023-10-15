@@ -1,12 +1,12 @@
 package ru.remsoftware.utils.parser
 
 import com.google.gson.Gson
-import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import org.bukkit.GameMode
 import org.bukkit.attribute.Attribute
 import org.bukkit.entity.Player
+import org.bukkit.potion.PotionEffectType
 import ru.tinkoff.kora.common.Component
 
 @Component

@@ -19,7 +19,7 @@ class PlayerScoreboard(
 
         ApiManager.newScoreboardBuilder().apply {
             title = ChatUtil.color("&b&lKit&4&lPvP")
-            setLine(11, ChatUtil.color("&3&l     ${LocalDateTime.now(ZoneId.of("Europe/Moscow")).format(DateTimeFormatter.ofPattern("d.MM.yyyy HH:mm:ss"))}"))
+            setLine(11, ChatUtil.color("&3&l      ${LocalDateTime.now(ZoneId.of("Europe/Moscow")).format(DateTimeFormatter.ofPattern("d.MM.yyyy HH:mm"))}"))
             setLine(10, "")
             setLine(9, ChatUtil.color("&a&lИнформация"))
             setLine(8, ChatUtil.color("  &fМонеты: &b${kitPlayer.money}"))
@@ -37,7 +37,7 @@ class PlayerScoreboard(
 
             addUpdater(20) { boardPlayer, scoreboard ->
                 val kPlayer = playerService[boardPlayer]!!
-                scoreboard.setLine(11, ChatUtil.color("&3&l     ${LocalDateTime.now(ZoneId.of("Europe/Moscow")).format(DateTimeFormatter.ofPattern("d.MM.yyyy HH:mm:ss"))}"))
+                scoreboard.setLine(11, ChatUtil.color("&3&l     ${LocalDateTime.now(ZoneId.of("Europe/Moscow")).format(DateTimeFormatter.ofPattern("d.MM.yyyy HH:mm"))}"))
                 scoreboard.setLine(8, ChatUtil.color("  &fМонеты: &b${kPlayer.money}"))
                 scoreboard.setLine(7, ChatUtil.color("  &fУбийств: &b${kPlayer.kills}"))
                 scoreboard.setLine(6, ChatUtil.color("  &fСмертей: &b${kPlayer.deaths}"))

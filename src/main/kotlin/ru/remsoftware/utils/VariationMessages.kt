@@ -55,5 +55,22 @@ object VariationMessages {
                 }
             }
         }
+        if (reason.equals("potion_wait")) {
+            if (divisible in 11..19) {
+                ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Вы не можете выпить зелье! Подождите ещё $divisible секунд")
+            } else {
+                val remainder = divisible % 10
+                if (remainder == 0 || remainder > 4) {
+                    ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Вы не можете выпить зелье! Подождите ещё $divisible секунд")
+                }
+                if (remainder == 1) {
+                    ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Вы не можете выпить зелье! Подождите ещё $divisible секунду")
+
+                }
+                if (remainder in 2..4) {
+                    ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Вы не можете выпить зелье! Подождите ещё $divisible секунды")
+                }
+            }
+        }
     }
 }

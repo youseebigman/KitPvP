@@ -11,12 +11,12 @@ import org.bukkit.event.player.PlayerKickEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.player.PlayerRespawnEvent
 import ru.remsoftware.database.DataBaseRepository
-import ru.remsoftware.game.InventoryManager
+import ru.remsoftware.game.inventories.InventoryManager
 import ru.remsoftware.server.ServerInfoService
-import ru.remsoftware.utils.parser.InventoryParser
-import ru.remsoftware.utils.parser.LocationParser
 import ru.remsoftware.utils.Logger
 import ru.remsoftware.utils.parser.GameDataParser
+import ru.remsoftware.utils.parser.InventoryParser
+import ru.remsoftware.utils.parser.LocationParser
 import ru.remsoftware.utils.parser.PotionEffectParser
 import ru.starfarm.core.task.GlobalTaskContext
 import ru.tinkoff.kora.common.Component
@@ -112,11 +112,8 @@ class PlayerService(
 
     @EventHandler
     fun onPlayerRespawn(event: PlayerRespawnEvent) {
-        event.respawnLocation = null
+        event.respawnLocation = serverInfoService.serverInfo!!.spawn
         inventoryManager.setDefaultInventory(event.player)
-        GlobalTaskContext.after(1) {
-            moveToSpawn(event.player)
-        }
     }
 
     fun savePlayerGameData(player: Player) {
@@ -145,7 +142,8 @@ class PlayerService(
             kitPlayer.activeBooster,
             kitPlayer.boosterTime,
             kitPlayer.position,
-            kitPlayer.inventory
+            kitPlayer.inventory,
+            kitPlayer.availableKits
         )
     }
 
