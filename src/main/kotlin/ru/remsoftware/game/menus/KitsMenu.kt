@@ -3,9 +3,11 @@ package ru.remsoftware.game.menus
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemFlag
+import ru.remsoftware.game.arena.ArenaService
 import ru.remsoftware.game.kits.KitManager
 import ru.remsoftware.game.kits.KitService
 import ru.remsoftware.game.money.MoneyManager
+import ru.remsoftware.game.player.PlayerService
 import ru.starfarm.core.ApiManager
 import ru.starfarm.core.inventory.container.InventoryContainer
 import ru.tinkoff.kora.common.Component
@@ -17,6 +19,8 @@ class KitsMenu(
     private val kitManager: KitManager,
     private val menuUtil: MenuUtil,
     private val moneyManager: MoneyManager,
+    private val playerService: PlayerService,
+    private val arenaService: ArenaService,
 ) : InventoryContainer("Выбор кита", 6) {
     override fun drawInventory(player: Player) {
         val freeKitsItem = ApiManager.newItemBuilder(Material.LEATHER_CHESTPLATE).apply {
@@ -27,7 +31,7 @@ class KitsMenu(
             addItemFlags(*ItemFlag.values())
         }.build()
         addItem(19, freeKitsItem) { _, _ ->
-            FreeKitsMenu(kitService, kitManager, menuUtil, moneyManager).openInventory(player)
+            FreeKitsMenu(kitService, kitManager, menuUtil, moneyManager, playerService, arenaService).openInventory(player)
         }
         val cheapKitsItem = ApiManager.newItemBuilder(Material.CHAINMAIL_CHESTPLATE).apply {
             name = "§aДешёвые киты"
@@ -37,7 +41,7 @@ class KitsMenu(
             addItemFlags(*ItemFlag.values())
         }.build()
         addItem(21, cheapKitsItem) { _, _ ->
-            CheapKitsMenu(kitService, kitManager, menuUtil, moneyManager).openInventory(player)
+            CheapKitsMenu(kitService, kitManager, menuUtil, moneyManager, playerService, arenaService).openInventory(player)
         }
         val averageKitsItem = ApiManager.newItemBuilder(Material.IRON_CHESTPLATE).apply {
             name = "§cНедорогие киты"
@@ -47,7 +51,7 @@ class KitsMenu(
             addItemFlags(*ItemFlag.values())
         }.build()
         addItem(23, averageKitsItem) { _, _ ->
-            AverageKitsMenu(kitService, kitManager, menuUtil, moneyManager).openInventory(player)
+            AverageKitsMenu(kitService, kitManager, menuUtil, moneyManager, playerService, arenaService).openInventory(player)
         }
         val bestKitsItem = ApiManager.newItemBuilder(Material.DIAMOND_CHESTPLATE).apply {
             name = "§5Дорогие киты"
@@ -57,10 +61,10 @@ class KitsMenu(
             addItemFlags(*ItemFlag.values())
         }.build()
         addItem(25, bestKitsItem) { _, _ ->
-            BestKitsMenu(kitService, kitManager, menuUtil, moneyManager).openInventory(player)
+            BestKitsMenu(kitService, kitManager, menuUtil, moneyManager, playerService, arenaService).openInventory(player)
         }
         addItem(45, menuUtil.backButton) { _, _ ->
-            MainMenu(kitManager, kitService, menuUtil, moneyManager).openInventory(player)
+            MainMenu(kitManager, kitService, menuUtil, moneyManager, playerService, arenaService).openInventory(player)
         }
     }
 }
@@ -71,6 +75,8 @@ class FreeKitsMenu(
     private val kitManager: KitManager,
     private val menuUtil: MenuUtil,
     private val moneyManager: MoneyManager,
+    private val playerService: PlayerService,
+    private val arenaService: ArenaService,
 ) : InventoryContainer("Бесплатные киты", 6) {
     override fun drawInventory(player: Player) {
         val allFreeKits = Collections.unmodifiableCollection(kitService.freeKits.toSortedMap().values)
@@ -80,7 +86,7 @@ class FreeKitsMenu(
                 lore(
                     "§fЦена: §aБесплатно"
                 )
-                addItemFlags(*ItemFlag.values())
+                addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
             }.build()
             addItem(it.index, item) { _, _ ->
                 kitManager.buyKit(player, it.value)
@@ -88,7 +94,7 @@ class FreeKitsMenu(
             }
         }
         addItem(45, menuUtil.backButton) { _, _ ->
-            KitsMenu(kitService, kitManager, menuUtil, moneyManager).openInventory(player)
+            KitsMenu(kitService, kitManager, menuUtil, moneyManager, playerService, arenaService).openInventory(player)
         }
     }
 }
@@ -99,6 +105,8 @@ class CheapKitsMenu(
     private val kitManager: KitManager,
     private val menuUtil: MenuUtil,
     private val moneyManager: MoneyManager,
+    private val playerService: PlayerService,
+    private val arenaService: ArenaService,
 ) : InventoryContainer("Дешёвые киты", 6) {
     override fun drawInventory(player: Player) {
         val allCheapKits = Collections.unmodifiableCollection(kitService.cheapKitsMap.toSortedMap().values)
@@ -108,7 +116,7 @@ class CheapKitsMenu(
                 lore(
                     "§fЦена: §a$${it.value.price}"
                 )
-                addItemFlags(*ItemFlag.values())
+                addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
             }.build()
             addItem(it.index, item) { _, _ ->
                 kitManager.buyKit(player, it.value)
@@ -116,7 +124,7 @@ class CheapKitsMenu(
             }
         }
         addItem(45, menuUtil.backButton) { _, _ ->
-            KitsMenu(kitService, kitManager, menuUtil, moneyManager).openInventory(player)
+            KitsMenu(kitService, kitManager, menuUtil, moneyManager, playerService, arenaService).openInventory(player)
         }
     }
 }
@@ -127,6 +135,8 @@ class AverageKitsMenu(
     private val kitManager: KitManager,
     private val menuUtil: MenuUtil,
     private val moneyManager: MoneyManager,
+    private val playerService: PlayerService,
+    private val arenaService: ArenaService,
 ) : InventoryContainer("Недорогие киты", 6) {
     override fun drawInventory(player: Player) {
         val allAverageKits = Collections.unmodifiableCollection(kitService.averageKitsMap.toSortedMap().values)
@@ -136,7 +146,7 @@ class AverageKitsMenu(
                 lore(
                     "§fЦена: §a$${it.value.price}"
                 )
-                addItemFlags(*ItemFlag.values())
+                addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
             }.build()
             addItem(it.index, item) { _, _ ->
                 kitManager.buyKit(player, it.value)
@@ -145,7 +155,7 @@ class AverageKitsMenu(
 
         }
         addItem(45, menuUtil.backButton) { _, _ ->
-            KitsMenu(kitService, kitManager, menuUtil, moneyManager).openInventory(player)
+            KitsMenu(kitService, kitManager, menuUtil, moneyManager, playerService, arenaService).openInventory(player)
         }
     }
 }
@@ -156,6 +166,8 @@ class BestKitsMenu(
     private val kitManager: KitManager,
     private val menuUtil: MenuUtil,
     private val moneyManager: MoneyManager,
+    private val playerService: PlayerService,
+    private val arenaService: ArenaService,
 ) : InventoryContainer("Дорогие киты", 6) {
     override fun drawInventory(player: Player) {
         val allBestKits = Collections.unmodifiableCollection(kitService.bestKitsMap.toSortedMap().values)
@@ -165,7 +177,7 @@ class BestKitsMenu(
                 lore(
                     "§fЦена: §a$${it.value.price}"
                 )
-                addItemFlags(*ItemFlag.values())
+                addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
             }.build()
             addItem(it.index, item) { _, _ ->
                 kitManager.buyKit(player, it.value)
@@ -173,7 +185,7 @@ class BestKitsMenu(
             }
         }
         addItem(45, menuUtil.backButton) { _, _ ->
-            KitsMenu(kitService, kitManager, menuUtil, moneyManager).openInventory(player)
+            KitsMenu(kitService, kitManager, menuUtil, moneyManager, playerService, arenaService).openInventory(player)
         }
     }
 }

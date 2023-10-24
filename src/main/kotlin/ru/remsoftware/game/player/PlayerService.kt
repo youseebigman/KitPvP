@@ -113,6 +113,7 @@ class PlayerService(
     @EventHandler
     fun onPlayerRespawn(event: PlayerRespawnEvent) {
         event.respawnLocation = serverInfoService.serverInfo!!.spawn
+        event.player.inventory.clear()
         inventoryManager.setDefaultInventory(event.player)
     }
 
@@ -135,8 +136,8 @@ class PlayerService(
             kitPlayer.money,
             kitPlayer.donateGroup,
             kitPlayer.arena,
-            kitPlayer.currentKills,
             kitPlayer.kills,
+            kitPlayer.currentKills,
             kitPlayer.deaths,
             kitPlayer.localBooster,
             kitPlayer.activeBooster,

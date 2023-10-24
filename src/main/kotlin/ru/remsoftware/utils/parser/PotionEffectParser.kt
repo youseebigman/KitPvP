@@ -62,7 +62,7 @@ class PotionEffectParser(
         }
     }
     fun potionDataToPotionEffect(data: PotionData): PotionEffect {
-        val effectType = data.type.effectType
+        val effectType = PotionEffectType.getByName(data.type.effectType.name)
         val level = if (data.isUpgraded) 1 else 0
         var duration: Int? = null
         if (!data.isUpgraded && data.isExtended) duration = 480000

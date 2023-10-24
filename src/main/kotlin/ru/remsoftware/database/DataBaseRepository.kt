@@ -1,5 +1,6 @@
 package ru.remsoftware.database
 
+import ru.remsoftware.game.arena.ArenaInfo
 import ru.remsoftware.game.kits.KitData
 import ru.remsoftware.game.player.KitPlayer
 import ru.remsoftware.game.potions.PotionData
@@ -72,6 +73,17 @@ interface DataBaseRepository : JdbcRepository {
 
     @Query("update kitpvp.server_data set spawn = :location where world = :world")
     fun updateSpawn(world: String, location: String)
+
+    // Query for arenas
+
+    @Query("select name, spawn_points from kitpvp.arenas_data where name = :name")
+    fun loadArenaLocations(name: String): ArenaInfo?
+
+    @Query("update kitpvp.arenas_data set name = :name, spawn_points = :data where name = :name")
+    fun updateArenaLocations(name: String, data: String)
+
+    @Query("insert into kitpvp.arenas_data (name, spawn_points) values(:name, :data)")
+    fun createArenaLocation(name: String, data: String)
 }
 
 

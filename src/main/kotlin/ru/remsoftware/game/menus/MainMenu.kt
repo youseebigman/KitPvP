@@ -3,9 +3,11 @@ package ru.remsoftware.game.menus
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemFlag
+import ru.remsoftware.game.arena.ArenaService
 import ru.remsoftware.game.kits.KitManager
 import ru.remsoftware.game.kits.KitService
 import ru.remsoftware.game.money.MoneyManager
+import ru.remsoftware.game.player.PlayerService
 import ru.starfarm.core.ApiManager
 import ru.starfarm.core.inventory.container.InventoryContainer
 import ru.tinkoff.kora.common.Component
@@ -16,6 +18,8 @@ class MainMenu(
     private val kitService: KitService,
     private val menuUtil: MenuUtil,
     private val moneyManager: MoneyManager,
+    private val playerService: PlayerService,
+    private val arenaService: ArenaService,
 ) : InventoryContainer("Меню", 6) {
     override fun drawInventory(player: Player) {
         val arenaItem = ApiManager.newItemBuilder(Material.GRASS).apply {
@@ -44,12 +48,14 @@ class MainMenu(
             )
         }.build()
 
-        addItem(19, arenaItem)
+        addItem(19, arenaItem) { _, _ ->
+            ArenasMenu(kitManager, kitService, menuUtil, moneyManager, playerService, arenaService).openInventory(player)
+        }
         addItem(21, kitMenuItem) { _, _ ->
-            KitsMenu(kitService, kitManager, menuUtil, moneyManager).openInventory(player)
+            KitsMenu(kitService, kitManager, menuUtil, moneyManager, playerService, arenaService).openInventory(player)
         }
         addItem(23, shopItem) { _, _ ->
-            ShopMenu(kitManager, kitService, moneyManager, menuUtil).openInventory(player)
+            ShopMenu(kitManager, kitService, moneyManager, menuUtil, playerService, arenaService).openInventory(player)
         }
         addItem(25, donateItem)
     }

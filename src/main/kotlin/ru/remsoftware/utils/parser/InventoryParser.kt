@@ -51,13 +51,13 @@ class InventoryParser {
         val inventory = Bukkit.getServer().createInventory(null, InventoryType.valueOf(inventoryType.asString))
         val inventoryArray = inventoryObject.get("inventory").asJsonArray
         for ((counter, item) in inventoryArray.withIndex()) {
-            val itemStack = jsonToItem(item.asString)
+            val itemStack = jsonToItem(item.toString())
             inventory.setItem(counter, itemStack)
         }
         return inventory
     }
 
-    fun itemToJson(itemStack: ItemStack): String {
+    fun itemToJson(itemStack: ItemStack): JsonObject {
         val itemJson = JsonObject()
 
         itemJson.addProperty("type", itemStack.type.name)
@@ -89,7 +89,7 @@ class InventoryParser {
             for (clazz in BYPASS_CLASS) {
                 if (meta.javaClass.getSimpleName().equals(clazz)) {
                     itemJson.add("item-meta", metaJson)
-                    return Gson().toJson(itemJson)
+                    return itemJson
                 }
             }
 
@@ -143,7 +143,7 @@ class InventoryParser {
             }
             itemJson.add("item-meta", metaJson)
         }
-        return Gson().toJson(itemJson)
+        return itemJson
     }
 
     fun jsonToItem(string: String): ItemStack {

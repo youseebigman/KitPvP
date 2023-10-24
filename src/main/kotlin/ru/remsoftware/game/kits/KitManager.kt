@@ -31,7 +31,7 @@ class KitManager(
             ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c У вас недостаточно монет для покупки этого класса")
             player.playSound(player.eyeLocation, Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F)
         } else {
-            moneyManager.removeMoney(player, price)
+            moneyManager.removeMoneyBecauseBuy(player, price)
             setKit(player, data)
             logger.log("Игрок ${player.name} купил кит ${data.name}")
         }

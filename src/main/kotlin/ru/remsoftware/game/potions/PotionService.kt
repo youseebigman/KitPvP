@@ -31,4 +31,11 @@ class PotionService {
         dataBaseRepository.updatePotion(potionData)
         set(potionData.name, potionData)
     }
+    fun getAllPotionsName(): List<String> {
+        val potionsNameList = arrayListOf<String>()
+        all().forEach {
+            potionsNameList.add(it.name)
+        }
+        return potionsNameList
+    }
 }

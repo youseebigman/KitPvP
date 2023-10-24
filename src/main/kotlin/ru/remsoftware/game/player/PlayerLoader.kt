@@ -18,7 +18,7 @@ class PlayerLoader(
         private set
     var donateGroup = "default"
         private set
-    var arena = "spawn"
+    var arena = "lobby"
         private set
     var kills = 0
         private set

@@ -4,15 +4,16 @@ import ru.remsoftware.database.DataBaseRepository
 import ru.remsoftware.utils.Logger
 import ru.tinkoff.kora.common.Component
 import java.util.*
+import kotlin.collections.HashMap
 
 @Component
 class KitService {
     private val cacheKitMap = hashMapOf<String, KitData>()
 
     val freeKits = hashMapOf<String, KitData>()
-    val cheapKitsMap = hashMapOf<Int, KitData>()
-    val averageKitsMap = hashMapOf<Int, KitData>()
-    val bestKitsMap = hashMapOf<Int, KitData>()
+    val cheapKitsMap = hashMapOf<String, KitData>()
+    val averageKitsMap = hashMapOf<String, KitData>()
+    val bestKitsMap = hashMapOf<String, KitData>()
 
 
     operator fun get(name: String) = cacheKitMap[name]
@@ -20,6 +21,9 @@ class KitService {
     operator fun set(name: String, data: KitData) {
         cacheKitMap[name] = data
     }
+    fun invalidate(name: String, map: HashMap<String, KitData>) = map.remove(name)
+
+
     fun all(): MutableCollection<KitData> = Collections.unmodifiableCollection(cacheKitMap.values)
 
     fun kitsLoader(database: DataBaseRepository, logger: Logger) {
@@ -48,16 +52,20 @@ class KitService {
     fun sortKitsByPrice(kitData: KitData) {
         when (kitData.price) {
             0 -> {
+                if (freeKits.containsKey(kitData.name)) invalidate(kitData.name, freeKits)
                 freeKits[kitData.name] = kitData
             }
             in 1..5000 -> {
-                cheapKitsMap[kitData.price] = kitData
+                if (cheapKitsMap.containsKey(kitData.name)) invalidate(kitData.name, cheapKitsMap)
+                cheapKitsMap[kitData.name] = kitData
             }
             in 5001..50000 -> {
-                averageKitsMap[kitData.price] = kitData
+                if (averageKitsMap.containsKey(kitData.name)) invalidate(kitData.name, averageKitsMap)
+                averageKitsMap[kitData.name] = kitData
             }
-            in 50001..10000000 -> {
-                bestKitsMap[kitData.price] = kitData
+            in 50001..100000000 -> {
+                if (bestKitsMap.containsKey(kitData.name)) invalidate(kitData.name, bestKitsMap)
+                bestKitsMap[kitData.name] = kitData
             }
         }
     }

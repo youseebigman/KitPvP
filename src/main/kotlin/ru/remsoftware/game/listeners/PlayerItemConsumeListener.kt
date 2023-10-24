@@ -1,20 +1,16 @@
 package ru.remsoftware.game.listeners
 
 import org.bukkit.ChatColor
-import org.bukkit.Color
 import org.bukkit.Material
 import org.bukkit.Sound
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerItemConsumeEvent
 import ru.remsoftware.game.player.PlayerDamageService
-import ru.remsoftware.game.potions.PotionData
 import ru.remsoftware.game.potions.PotionService
 import ru.remsoftware.utils.VariationMessages
 import ru.remsoftware.utils.parser.PotionEffectParser
-import ru.starfarm.core.util.format.ChatUtil
 import ru.starfarm.core.util.item.name
-import ru.starfarm.core.util.time.Cooldown
 import ru.starfarm.core.util.time.CooldownUtil
 import ru.tinkoff.kora.common.Component
 import java.util.concurrent.TimeUnit
@@ -30,19 +26,16 @@ class PlayerItemConsumeListener(
     fun onPlayerConsume(event: PlayerItemConsumeEvent) {
         val item = event.item
         val player = event.player
-        val itemName = ChatColor.stripColor(item.name)
-        println(itemName)
-        if (itemName != null) {
-            val customPotionsNameList = getAllPotionsName(potionService.all())
-            println(customPotionsNameList)
+        if (item.name != null) {
+            val itemName = ChatColor.stripColor(item.name)
+            val customPotionsNameList = potionService.getAllPotionsName()
             if (customPotionsNameList.contains(itemName)) {
-                println("contains")
                 val customPotion = potionService[itemName]
                 if (customPotion != null) {
                     if (CooldownUtil.has(itemName, player)) {
                         event.isCancelled = true
                         val timeLeft = TimeUnit.MILLISECONDS.toSeconds(CooldownUtil.get(itemName, player))
-                        VariationMessages.sendMessageWithVariants(timeLeft.toInt(), player, "potion_wait")
+                        VariationMessages.sendMessageWithVariants(timeLeft.toInt(), player, "potion_wait", null, null)
                         player.playSound(player.eyeLocation, Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f)
                     } else {
                         event.isCancelled = true
@@ -62,11 +55,5 @@ class PlayerItemConsumeListener(
         }
     }
 
-    fun getAllPotionsName(potions: MutableCollection<PotionData>): List<String> {
-        val potionsNameList = arrayListOf<String>()
-        potions.forEach {
-            potionsNameList.add(it.name)
-        }
-        return potionsNameList
-    }
+
 }

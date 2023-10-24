@@ -1,15 +1,19 @@
 package ru.remsoftware.game.menus
 
 import org.bukkit.Material
+import org.bukkit.Sound
 import org.bukkit.enchantments.Enchantment
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
+import ru.remsoftware.game.arena.ArenaService
 import ru.remsoftware.game.kits.KitManager
 import ru.remsoftware.game.kits.KitService
 import ru.remsoftware.game.money.MoneyManager
+import ru.remsoftware.game.player.PlayerService
 import ru.starfarm.core.ApiManager
 import ru.starfarm.core.inventory.container.InventoryContainer
+import ru.starfarm.core.util.format.ChatUtil
 import ru.starfarm.core.util.item.lore
 import ru.starfarm.core.util.item.name
 
@@ -18,6 +22,8 @@ class ShopMenu(
     private val kitService: KitService,
     private val moneyManager: MoneyManager,
     private val menuUtil: MenuUtil,
+    private val playerService: PlayerService,
+    private val arenaService: ArenaService,
 ) : InventoryContainer("Магазин", 6) {
     override fun drawInventory(player: Player) {
         val armorShopItem = ApiManager.newItemBuilder(Material.IRON_HELMET).apply {
@@ -39,13 +45,13 @@ class ShopMenu(
             addItemFlags(ItemFlag.HIDE_ENCHANTS)
         }.build()
         addItem(21, armorShopItem) { _, _ ->
-            ArmorShop(kitManager, kitService, moneyManager, menuUtil).openInventory(player)
+            ArmorShop(kitManager, kitService, moneyManager, menuUtil, playerService, arenaService).openInventory(player)
         }
         addItem(23, armorEnchantShopItem) { _, _ ->
-            ArmorEnchantShop(kitManager, kitService, moneyManager, menuUtil).openInventory(player)
+            ArmorEnchantShop(kitManager, kitService, moneyManager, menuUtil, playerService, arenaService).openInventory(player)
         }
         addItem(45, menuUtil.backButton) { _, _ ->
-            MainMenu(kitManager, kitService, menuUtil, moneyManager).openInventory(player)
+            MainMenu(kitManager, kitService, menuUtil, moneyManager, playerService, arenaService).openInventory(player)
         }
     }
 }
@@ -55,6 +61,8 @@ class ArmorShop(
     private val kitService: KitService,
     private val moneyManager: MoneyManager,
     private val menuUtil: MenuUtil,
+    private val playerService: PlayerService,
+    private val arenaService: ArenaService,
 ) : InventoryContainer("Покупка предметов", 6) {
     override fun drawInventory(player: Player) {
         val ironArmorPrice: Int = 500
@@ -63,8 +71,9 @@ class ArmorShop(
             lore(
                 "",
                 "&fЦена: &a$$ironSwordPrice",
-                "§7Нажмите, чтобы купить железный шлем"
+                "§7Нажмите, чтобы купить железный меч"
             )
+            addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
         }.build()
         val helmet = ApiManager.newItemBuilder(Material.IRON_HELMET).apply {
             lore(
@@ -72,6 +81,7 @@ class ArmorShop(
                 "&fЦена: &a$$ironArmorPrice",
                 "§7Нажмите, чтобы купить железный шлем"
             )
+            addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
         }.build()
         val chestPlate = ApiManager.newItemBuilder(Material.IRON_CHESTPLATE).apply {
             lore(
@@ -79,6 +89,7 @@ class ArmorShop(
                 "&fЦена: &a$$ironArmorPrice",
                 "§7Нажмите, чтобы купить железный нагрудник"
             )
+            addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
         }.build()
         val leggings = ApiManager.newItemBuilder(Material.IRON_LEGGINGS).apply {
             lore(
@@ -86,6 +97,7 @@ class ArmorShop(
                 "&fЦена: &a$$ironArmorPrice",
                 "§7Нажмите, чтобы купить железные поножи"
             )
+            addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
         }.build()
         val boots = ApiManager.newItemBuilder(Material.IRON_BOOTS).apply {
             lore(
@@ -93,45 +105,46 @@ class ArmorShop(
                 "&fЦена: &a$$ironArmorPrice",
                 "§7Нажмите, чтобы купить железные ботинки"
             )
+            addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
         }.build()
 
         addItem(20, sword) { _, _ ->
-            val check = menuUtil.checkPlayerInventory(player)
+            val check = menuUtil.checkPlayerInventoryForBuy(player, playerService)
             if (check) {
-                moneyManager.removeMoney(player, ironArmorPrice)
+                moneyManager.removeMoneyBecauseBuy(player, ironArmorPrice)
                 player.inventory.addItem(ItemStack(Material.IRON_SWORD))
             }
         }
         addItem(21, helmet) { _, _ ->
-            val check = menuUtil.checkPlayerInventory(player)
+            val check = menuUtil.checkPlayerInventoryForBuy(player, playerService)
             if (check) {
-                moneyManager.removeMoney(player, ironArmorPrice)
+                moneyManager.removeMoneyBecauseBuy(player, ironArmorPrice)
                 player.inventory.addItem(ItemStack(Material.IRON_HELMET))
             }
         }
         addItem(22, chestPlate) { _, _ ->
-            val check = menuUtil.checkPlayerInventory(player)
+            val check = menuUtil.checkPlayerInventoryForBuy(player, playerService)
             if (check) {
-                moneyManager.removeMoney(player, ironArmorPrice)
+                moneyManager.removeMoneyBecauseBuy(player, ironArmorPrice)
                 player.inventory.addItem(ItemStack(Material.IRON_CHESTPLATE))
             }
         }
         addItem(23, leggings) { _, _ ->
-            val check = menuUtil.checkPlayerInventory(player)
+            val check = menuUtil.checkPlayerInventoryForBuy(player, playerService)
             if (check) {
-                moneyManager.removeMoney(player, ironArmorPrice)
+                moneyManager.removeMoneyBecauseBuy(player, ironArmorPrice)
                 player.inventory.addItem(ItemStack(Material.IRON_LEGGINGS))
             }
         }
         addItem(24, boots) { _, _ ->
-            val check = menuUtil.checkPlayerInventory(player)
+            val check = menuUtil.checkPlayerInventoryForBuy(player, playerService)
             if (check) {
-                moneyManager.removeMoney(player, ironArmorPrice)
+                moneyManager.removeMoneyBecauseBuy(player, ironArmorPrice)
                 player.inventory.addItem(ItemStack(Material.IRON_BOOTS))
             }
         }
         addItem(45, menuUtil.backButton) { _, _ ->
-            ShopMenu(kitManager, kitService, moneyManager, menuUtil).openInventory(player)
+            ShopMenu(kitManager, kitService, moneyManager, menuUtil, playerService, arenaService).openInventory(player)
         }
     }
 }
@@ -141,6 +154,8 @@ class ArmorEnchantShop(
     private val kitService: KitService,
     private val moneyManager: MoneyManager,
     private val menuUtil: MenuUtil,
+    private val playerService: PlayerService,
+    private val arenaService: ArenaService,
 ) : InventoryContainer("Зачарование предметов", 6) {
     override fun drawInventory(player: Player) {
         val armorList = arrayListOf<ItemStack>()
@@ -154,11 +169,11 @@ class ArmorEnchantShop(
         armorList.withIndex().forEach {
             val item = ApiManager.newItemBuilder(it.value).build()
             addItem(it.index, item) { _, _ ->
-                EnchantMenu(item, menuUtil, moneyManager, kitManager, kitService).openInventory(player)
+                EnchantMenu(item, menuUtil, moneyManager, kitManager, kitService, playerService, arenaService).openInventory(player)
             }
         }
         addItem(45, menuUtil.backButton) { _, _ ->
-            ShopMenu(kitManager, kitService, moneyManager, menuUtil).openInventory(player)
+            ShopMenu(kitManager, kitService, moneyManager, menuUtil, playerService, arenaService).openInventory(player)
         }
     }
 }
@@ -169,66 +184,149 @@ class EnchantMenu(
     private val moneyManager: MoneyManager,
     private val kitManager: KitManager,
     private val kitService: KitService,
-) : InventoryContainer("Зачарование предметов", 3) {
+    private val playerService: PlayerService,
+    private val arenaService: ArenaService,
+) : InventoryContainer("Зачарование предметов", 4) {
     override fun drawInventory(player: Player) {
+        val durabilityPrice = listOf(100, 250, 500)
+
         if (item.type.name.endsWith("HELMET") || item.type.name.endsWith("CHESTPLATE") || item.type.name.endsWith("LEGGINGS") || item.type.name.endsWith("BOOTS")) {
-            val ironProtectionPrices = listOf(250, 600, 1000, 1500)
-            val itemMeta = item.itemMeta
-            if (itemMeta.hasEnchant(Enchantment.PROTECTION_ENVIRONMENTAL)) {
-                val protectionLevel = itemMeta.getEnchantLevel(Enchantment.PROTECTION_ENVIRONMENTAL)
-                for (i in protectionLevel + 1..4) {
-                    val enchantItem = ApiManager.newItemBuilder(item).apply {
-                        /*name = item.name
-                        lore = item.lore*/
-                        lore(
-                            "",
-                            "&fЦена: &a$${ironProtectionPrices[i - 1]}",
-                            "§7Нажмите, чтобы наложить зачарование на этот предмет"
-                        )
-                        enchant(Enchantment.PROTECTION_ENVIRONMENTAL, i)
-                    }.build()
-                    val newItem = ApiManager.newItemBuilder(item).apply {
-                        lore()
-                        enchant(Enchantment.PROTECTION_ENVIRONMENTAL, i)
-                    }.build()
-                    addItem(i - 1, enchantItem) { _, _ ->
-                        val check = menuUtil.checkPlayerInventory(player)
-                        if (check) {
-                            moneyManager.removeMoney(player, ironProtectionPrices[i - 1])
-                            player.inventory.addItem(newItem)
-                            player.inventory.remove(item)
-                            ArmorEnchantShop(kitManager, kitService, moneyManager, menuUtil).openInventory(player)
-                        }
-                    }
-                }
-            } else {
+            if (item.type.name.startsWith("LEATHER")) {
+                val leatherProtectionPrices = listOf(50, 150, 300, 600)
                 for (i in 1..4) {
-                    val enchantItem = ApiManager.newItemBuilder(item).apply {
-                        lore(
-                            "",
-                            "&fЦена: &a$${ironProtectionPrices[i - 1]}",
-                            "§7Нажмите, чтобы купить это зачарование"
-                        )
-                        enchant(Enchantment.PROTECTION_ENVIRONMENTAL, i)
-                    }.build()
-                    val newItem = ApiManager.newItemBuilder(item).apply {
-                        lore()
-                        enchant(Enchantment.PROTECTION_ENVIRONMENTAL, i)
-                    }.build()
-                    addItem(i - 1, enchantItem) { _, _ ->
-                        val check = menuUtil.checkPlayerInventory(player)
-                        if (check) {
-                            moneyManager.removeMoney(player, ironProtectionPrices[i - 1])
-                            player.inventory.addItem(newItem)
-                            player.inventory.remove(item)
-                            ArmorEnchantShop(kitManager, kitService, moneyManager, menuUtil).openInventory(player)
-                        }
-                    }
+                    createEnchantsItems(item, player, leatherProtectionPrices, i-1, 1, Enchantment.PROTECTION_ENVIRONMENTAL)
+                }
+                for (i in 1..3) {
+                    createEnchantsItems(item, player, durabilityPrice, i-1, 2, Enchantment.DURABILITY)
+                }
+            } else if (item.type.name.startsWith("CHAINMAIL")) {
+                val chainProtectionPrices = listOf(100, 300, 600, 1000)
+                for (i in 1..4) {
+                    createEnchantsItems(item, player, chainProtectionPrices, i-1, 1, Enchantment.PROTECTION_ENVIRONMENTAL)
+                }
+                for (i in 1..3) {
+                    createEnchantsItems(item, player, durabilityPrice, i-1, 2, Enchantment.DURABILITY)
+                }
+            } else if (item.type.name.startsWith("GOLD")) {
+                val goldProtectionPrices = listOf(50, 200, 400, 700)
+                for (i in 1..4) {
+                    createEnchantsItems(item, player, goldProtectionPrices, i-1, 1, Enchantment.PROTECTION_ENVIRONMENTAL)
+                }
+                for (i in 1..3) {
+                    createEnchantsItems(item, player, durabilityPrice, i-1, 2, Enchantment.DURABILITY)
+                }
+            } else if (item.type.name.startsWith("IRON")) {
+                val ironProtectionPrices = listOf(250, 600, 1000, 1500)
+                for (i in 1..4) {
+                    createEnchantsItems(item, player, ironProtectionPrices, i-1, 1, Enchantment.PROTECTION_ENVIRONMENTAL)
+                }
+                for (i in 1..3) {
+                    createEnchantsItems(item, player, durabilityPrice, i-1, 2, Enchantment.DURABILITY)
+                }
+            } else if (item.type.name.startsWith("DIAMOND")) {
+                val diamondProtectionPrices = listOf(300, 900, 1500, 2000)
+                for (i in 1..4) {
+                    createEnchantsItems(item, player, diamondProtectionPrices, i-1, 1, Enchantment.PROTECTION_ENVIRONMENTAL)
+                }
+                for (i in 1..3) {
+                    createEnchantsItems(item, player, durabilityPrice, i-1, 2, Enchantment.DURABILITY)
                 }
             }
+        } else if (item.type.name.endsWith("SWORD")) {
+            if (item.type.name.startsWith("WOOD") || item.type.name.startsWith("GOLD")) {
+                val woodAndGoldSharpnessPrice = listOf(80, 200, 350, 500, 700)
+                for (i in 1..5) {
+                    createEnchantsItems(item, player, woodAndGoldSharpnessPrice, i-1, 1, Enchantment.DAMAGE_ALL)
+                }
+                for (i in 1..3) {
+                    createEnchantsItems(item, player, durabilityPrice, i-1, 2, Enchantment.DURABILITY)
+                }
+            } else if (item.type.name.startsWith("STONE")) {
+                val stoneSharpnessPrice = listOf(100, 250, 450, 700, 1000)
+                for (i in 1..5) {
+                    createEnchantsItems(item, player, stoneSharpnessPrice, i-1, 1, Enchantment.DAMAGE_ALL)
+                }
+                for (i in 1..3) {
+                    createEnchantsItems(item, player, durabilityPrice, i-1, 2, Enchantment.DURABILITY)
+                }
+            } else if (item.type.name.startsWith("IRON")) {
+                val ironSharpnessPrice = listOf(150, 450, 900, 1200, 1500)
+                for (i in 1..5) {
+                    createEnchantsItems(item, player, ironSharpnessPrice, i-1, 1, Enchantment.DAMAGE_ALL)
+                }
+                for (i in 1..3) {
+                    createEnchantsItems(item, player, durabilityPrice, i-1, 2, Enchantment.DURABILITY)
+                }
+            } else if (item.type.name.startsWith("DIAMOND")) {
+                val diamondSharpnessPrice = listOf(200, 600, 1200, 1500, 2000)
+                for (i in 1..5) {
+                    createEnchantsItems(item, player, diamondSharpnessPrice, i-1, 1, Enchantment.DAMAGE_ALL)
+                }
+                for (i in 1..3) {
+                    createEnchantsItems(item, player, durabilityPrice, i-1, 2, Enchantment.DURABILITY)
+                }
+            }
+        } else if (item.type.name.endsWith("BOW")) {
+            val bowPowerPrice = listOf(250, 600, 1000, 1500, 2000)
+            for (i in 1..5) {
+                createEnchantsItems(item, player, bowPowerPrice, i - 1, 1, Enchantment.ARROW_DAMAGE)
+            }
+            for (i in 1..3) {
+                createEnchantsItems(item, player, durabilityPrice, i - 1, 1, Enchantment.DURABILITY)
+            }
         }
-        addItem(18, menuUtil.backButton) { _, _ ->
-            ArmorEnchantShop(kitManager, kitService, moneyManager, menuUtil).openInventory(player)
+
+        addItem(27, menuUtil.backButton) { _, _ ->
+            ArmorEnchantShop(kitManager, kitService, moneyManager, menuUtil, playerService, arenaService).openInventory(player)
+        }
+    }
+    fun createEnchantsItems(item: ItemStack, player: Player, priceList: List<Int>, counter: Int, row: Int, enchantment: Enchantment) {
+        val itemMeta = item.itemMeta
+        var enchantLevel: Int? = null
+        var slot: Int = 0
+        when (row) {
+            1 -> slot = counter
+            2 -> slot = counter + 9
+            3 -> slot = counter + 18
+        }
+        if (itemMeta.hasEnchant(enchantment)) {
+            enchantLevel = itemMeta.getEnchantLevel(enchantment)
+        }
+        val enchantItem = ApiManager.newItemBuilder(item).apply {
+            lore(
+                "",
+                "&fЦена: &a$${priceList[counter]}",
+                "§7Нажмите, чтобы купить это зачарование"
+            )
+            enchant(enchantment, counter + 1)
+        }.build()
+        val newItem = ApiManager.newItemBuilder(item).apply {
+            lore()
+            enchant(enchantment, counter + 1)
+        }.build()
+        addItem(slot, enchantItem) { _, _ ->
+            val check = menuUtil.checkPlayerInventoryForBuy(player, playerService)
+            if (enchantLevel == null) {
+                if (check) {
+                    moneyManager.removeMoneyBecauseBuy(player, priceList[counter])
+                    player.inventory.remove(item)
+                    player.inventory.addItem(newItem)
+                    ArmorEnchantShop(kitManager, kitService, moneyManager, menuUtil, playerService, arenaService).openInventory(player)
+                }
+            } else {
+                if (enchantLevel < counter + 1) {
+                    if (check) {
+                        moneyManager.removeMoneyBecauseBuy(player, priceList[counter])
+                        player.inventory.remove(item)
+                        player.inventory.addItem(newItem)
+                        ArmorEnchantShop(kitManager, kitService, moneyManager, menuUtil, playerService, arenaService).openInventory(player)
+                    }
+                } else {
+                    player.closeInventory()
+                    ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c На вашем предмете уже наложены чары такого уровня!")
+                    player.playSound(player.eyeLocation, Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f)
+                }
+            }
         }
     }
 }

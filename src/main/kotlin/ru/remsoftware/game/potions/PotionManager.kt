@@ -12,7 +12,13 @@ class PotionManager (
     private val dataBaseRepository: DataBaseRepository,
 ) {
     fun createPotion(name: String, cooldown: Long, effects: String, player: Player) {
-        val potionData = PotionData(name, TimeUnit.SECONDS.toMillis(cooldown), effects)
+        var currentName = ""
+        if (name.contains("_")) {
+            currentName = name.replace("_", " ")
+        } else {
+            currentName = name
+        }
+        val potionData = PotionData(currentName, TimeUnit.SECONDS.toMillis(cooldown), effects)
         potionService.createPotion(potionData, dataBaseRepository)
         ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&a&l Вы успешно создали $name")
     }
@@ -21,4 +27,5 @@ class PotionManager (
         potionService.updatePotion(potionData, dataBaseRepository)
         ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&a&l Вы успешно обновили $name")
     }
+
 }

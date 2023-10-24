@@ -4,6 +4,7 @@ import org.bukkit.Sound
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.command.TabCompleter
+import org.bukkit.enchantments.Enchantment
 import org.bukkit.entity.Player
 import ru.remsoftware.utils.PlayersUtil
 import ru.remsoftware.utils.SortingUtil
@@ -11,6 +12,18 @@ import ru.tinkoff.kora.common.Component
 
 @Component
 class KitpvpTabComplete : TabCompleter {
+    private val enchantmentList = arrayListOf<String>()
+    private val soundList = arrayListOf<String>()
+    init {
+        Sound.values().forEach {
+            soundList.add(it.toString())
+        }
+        Enchantment.values().forEach {
+            enchantmentList.add(it.name.toString())
+        }
+    }
+
+
     override fun onTabComplete(sender: CommandSender?, command: Command, alias: String?, args: Array<out String>): MutableList<String>? {
         if (command.name.lowercase().equals("kitpvp")) {
             if (sender is Player) {
@@ -22,11 +35,16 @@ class KitpvpTabComplete : TabCompleter {
                     }
                 } else {
                     if (args.size == 1) {
-                        val commandList = listOf("booster", "create", "potions", "player", "playsound", "server", "sup", "menu")
+                        val commandList = listOf("booster", "create", "potions", "player", "playsound", "server", "sup", "menu", "enchant", "arena")
                         val startArgs = args[0]
                         return SortingUtil.sortListWithStartLetters(commandList, startArgs)
                     }
                     if (args.size == 2) {
+                        if (args[0].equals("arena", ignoreCase = true)) {
+                            val commandList = listOf("createSpawnPoint", "remove")
+                            val startArgs = args[1]
+                            return SortingUtil.sortListWithStartLetters(commandList, startArgs)
+                        }
                         if (args[0].equals("booster", ignoreCase = true)) {
                             val commandList = listOf("add", "remove")
                             val startArgs = args[1]
@@ -38,12 +56,8 @@ class KitpvpTabComplete : TabCompleter {
                             return SortingUtil.sortListWithStartLetters(commandList, startArgs)
                         }
                         if (args[0].equals("playsound", ignoreCase = true)) {
-                            val soundsList: MutableList<String> = mutableListOf()
                             val letters = args[1]
-                            Sound.values().forEach {
-                                soundsList.add(it.toString())
-                            }
-                            return SortingUtil.sortListWithContainsLetters(soundsList, letters)
+                            return SortingUtil.sortListWithContainsLetters(soundList, letters)
                         }
                         if (args[0].equals("server", ignoreCase = true)) {
                             val commandList = listOf("setspawn")
@@ -60,6 +74,11 @@ class KitpvpTabComplete : TabCompleter {
                             val startArgs = args[1]
                             return SortingUtil.sortListWithStartLetters(commandList, startArgs)
                         }
+                        if (args[0].equals("enchant", ignoreCase = true)) {
+                            val commandList = listOf("add", "clear")
+                            val startArgs = args[1]
+                            return SortingUtil.sortListWithStartLetters(commandList, startArgs)
+                        }
 
                     }
                     if (args.size == 3) {
@@ -71,7 +90,6 @@ class KitpvpTabComplete : TabCompleter {
                         if (args[0].equals("booster", ignoreCase = true)) {
                             val playersList = PlayersUtil.getOnlinePlayersName()
                             val startArgs = args[2]
-
                             return SortingUtil.sortListWithStartLetters(playersList, startArgs)
                         }
                         if (args[1].equals("check", ignoreCase = true)) {
@@ -95,6 +113,12 @@ class KitpvpTabComplete : TabCompleter {
                             val commandList = listOf("get", "create", "update")
                             val startArgs = args[2]
                             return SortingUtil.sortListWithStartLetters(commandList, startArgs)
+                        }
+                        if (args[0].equals("enchant", ignoreCase = true)) {
+                            if (args[1].equals("add", ignoreCase = true)) {
+                                val letters = args[2]
+                                return SortingUtil.sortListWithContainsLetters(enchantmentList, letters)
+                            }
                         }
                     }
                 }
@@ -162,8 +186,6 @@ class KitpvpTabComplete : TabCompleter {
                         val commandList = listOf("get", "create", "update")
                         val startArgs = args[2]
                         return SortingUtil.sortListWithStartLetters(commandList, startArgs)
-
-
                     }
                 }
             }

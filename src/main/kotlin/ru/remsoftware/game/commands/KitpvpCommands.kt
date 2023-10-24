@@ -6,9 +6,11 @@ import org.bukkit.attribute.Attribute
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
+import org.bukkit.enchantments.Enchantment
 import org.bukkit.entity.Player
 import ru.remsoftware.database.DataBaseRepository
 import ru.remsoftware.game.Tips
+import ru.remsoftware.game.arena.ArenaService
 import ru.remsoftware.game.kits.KitManager
 import ru.remsoftware.game.kits.KitService
 import ru.remsoftware.game.menus.MainMenu
@@ -26,6 +28,8 @@ import ru.remsoftware.utils.parser.InventoryParser
 import ru.remsoftware.utils.parser.LocationParser
 import ru.remsoftware.utils.parser.PotionEffectParser
 import ru.starfarm.core.util.format.ChatUtil
+import ru.starfarm.core.util.item.enchants
+import ru.starfarm.core.util.item.removeEnchants
 import ru.tinkoff.kora.common.Component
 
 @Component
@@ -45,6 +49,7 @@ class KitpvpCommands(
     private val potionService: PotionService,
     private val potionEffectParser: PotionEffectParser,
     private val moneyManager: MoneyManager,
+    private val arenaService: ArenaService,
 ) : CommandExecutor {
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
@@ -56,10 +61,45 @@ class KitpvpCommands(
                     return true
                 } else {
                     if (args[0].equals("menu", ignoreCase = true)) {
-                        MainMenu(kitManager, kitService, menuUtil, moneyManager).openInventory(player)
+                        MainMenu(kitManager, kitService, menuUtil, moneyManager, playerService, arenaService).openInventory(player)
                     }
                     if (args[0].equals("potions", ignoreCase = true)) {
                         PotionMenu(potionService, inventoryParser, potionEffectParser).openInventory(player)
+                    }
+                    if (args[0].equals("arena", ignoreCase = true)) {
+                        if (args.size == 2) {
+                            if (args[1].equals("createSpawnPoint", ignoreCase = true)) {
+                                arenaService.addSpawnPoint(player.world.name, player.location)
+                            }
+                        }
+                    }
+                    if (args[0].equals("enchant", ignoreCase = true)) {
+                        if (args.size == 2) {
+                            if (args[1].equals("clear", ignoreCase = true)) {
+                                if (player.inventory.itemInMainHand == null) {
+                                    ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Возьмите предмет в руку!")
+                                } else {
+                                    val item = player.inventory.itemInMainHand
+                                    item.enchantments.forEach {
+                                        item.removeEnchantment(it.key)
+                                    }
+                                }
+                            }
+                        }
+                        if (args.size == 4) {
+                            if (args[1].equals("add", ignoreCase = true)) {
+                                val enchant = Enchantment.getByName(args[2])
+                                if (player.inventory.itemInMainHand == null) {
+                                    ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Возьмите предмет в руку!")
+                                } else {
+                                    val item = player.inventory.itemInMainHand
+                                    item.setItemMeta(item.itemMeta.apply { addEnchant(enchant, args[3].toInt(), true) })
+                                    player.playSound(player.eyeLocation, Sound.BLOCK_NOTE_BELL, 1.0f, 1.0f)
+                                    ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&a Зачарование успешно добавлено")
+                                }
+                            }
+
+                        }
                     }
                     if (args[0].equals("create", ignoreCase = true)) {
                         if (args.size > 1) {
@@ -67,9 +107,6 @@ class KitpvpCommands(
                                 if (args.size == 5) {
                                     if (args[2].equals("create", ignoreCase = true)) {
                                         var potionName = args[3]
-                                        if (potionName.contains("_")) {
-                                           potionName = potionName.replace("_", " ")
-                                        }
                                         var potionCooldown: Long? = null
                                         val targetPotion = player.inventory.itemInMainHand
                                         try {
@@ -78,7 +115,7 @@ class KitpvpCommands(
                                             ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Вы неправильно ввели кулдаун!")
                                         }
                                         if (potionCooldown != null && targetPotion != null) {
-                                            potionManager.createPotion(potionName, potionCooldown, inventoryParser.itemToJson(targetPotion), player)
+                                            potionManager.createPotion(potionName, potionCooldown, inventoryParser.itemToJson(targetPotion).toString(), player)
                                         }
                                     }
                                     if (args[2].equals("update", ignoreCase = true)) {
@@ -91,7 +128,7 @@ class KitpvpCommands(
                                             ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Вы неправильно ввели кулдаун!")
                                         }
                                         if (potionCooldown != null) {
-                                            potionManager.updatePotion(potionName, potionCooldown, inventoryParser.itemToJson(targetPotion), player)
+                                            potionManager.updatePotion(potionName, potionCooldown, inventoryParser.itemToJson(targetPotion).toString(), player)
                                         }
                                     }
                                 }
@@ -332,7 +369,7 @@ class KitpvpCommands(
                 }
             } else {
                 if (args[0].equals("menu", ignoreCase = true)) {
-                    MainMenu(kitManager, kitService, menuUtil, moneyManager).openInventory(player)
+                    MainMenu(kitManager, kitService, menuUtil, moneyManager, playerService, arenaService).openInventory(player)
                 } else {
                     ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c&l У вас нету прав на использование данной команды")
                 }
@@ -349,7 +386,7 @@ class KitpvpCommands(
                             if (kitPlayer != null) {
                                 ChatUtil.sendMessage(sender, "$kitPlayer")
                             } else {
-                                ChatUtil.sendMessage(sender, "&cДанный игрок никогда не заходил на сервер!")
+                                ChatUtil.sendMessage(sender, "&c Данный игрок никогда не заходил на сервер!")
                             }
                         } else {
                             ChatUtil.sendMessage(sender, "$targetKitPlayer")
