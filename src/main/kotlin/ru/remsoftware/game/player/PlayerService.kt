@@ -2,6 +2,7 @@ package ru.remsoftware.game.player
 
 import org.bukkit.Bukkit
 import org.bukkit.Location
+import org.bukkit.Sound
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -18,7 +19,10 @@ import ru.remsoftware.utils.parser.GameDataParser
 import ru.remsoftware.utils.parser.InventoryParser
 import ru.remsoftware.utils.parser.LocationParser
 import ru.remsoftware.utils.parser.PotionEffectParser
+import ru.starfarm.core.ApiManager
+import ru.starfarm.core.profile.group.DonateGroup
 import ru.starfarm.core.task.GlobalTaskContext
+import ru.starfarm.core.util.format.ChatUtil
 import ru.tinkoff.kora.common.Component
 import java.util.*
 
@@ -26,12 +30,11 @@ import java.util.*
 class PlayerService(
     private val database: DataBaseRepository,
     private val logger: Logger,
-    private val serverInfoService: ServerInfoService,
     private val locParse: LocationParser,
     private val inventoryParser: InventoryParser,
     private val potionEffectParser: PotionEffectParser,
     private val gameDataParser: GameDataParser,
-    private val inventoryManager: InventoryManager,
+    private val playerCombatManager: PlayerCombatManager,
 ) : Listener {
 
     private val players = hashMapOf<String, KitPlayer>()
@@ -76,7 +79,6 @@ class PlayerService(
             }
             if (invalidateList.isEmpty()) {
                 playersInCache.clear()
-                logger.log("Недействительного кэша игроков не найдено")
             } else {
                 logger.log("Список игроков удалённых из кэша: $invalidateList")
                 playersInCache.clear()
@@ -93,37 +95,22 @@ class PlayerService(
         logger.log("Player data loaded for $playerName")
     }
 
-
-    @EventHandler
-    fun onPlayerQuit(event: PlayerQuitEvent) {
-        val name = event.player.name
-        savePlayerGameData(event.player)
-        logger.log("Update players data for $name")
-        invalidate(name)
-    }
-
-    @EventHandler
-    fun onPlayerKickEvent(event: PlayerKickEvent) {
-        val name = event.player.name
-        savePlayerGameData(event.player)
-        logger.log("Update players data for $name")
-        invalidate(name)
-    }
-
-    @EventHandler
-    fun onPlayerRespawn(event: PlayerRespawnEvent) {
-        event.respawnLocation = serverInfoService.serverInfo!!.spawn
-        event.player.inventory.clear()
-        inventoryManager.setDefaultInventory(event.player)
-    }
-
     fun savePlayerGameData(player: Player) {
-        val kitPlayer = players[player.name]!!
-        kitPlayer.gameData = gameDataParser.gameDataToJson(player)
-        kitPlayer.inventory = inventoryParser.inventoryToJson(player.inventory)
-        kitPlayer.potionEffects = potionEffectParser.effectsToJson(player)
-        kitPlayer.position = locParse.locToStr(player.location)
-        database.updatePlayer(kitPlayer)
+        val name = player.name
+        val kitPlayer = players[name]!!
+        if (playerCombatManager.isCombatPlayer(name)) {
+            kitPlayer.gameData = null
+            kitPlayer.inventory = null
+            kitPlayer.potionEffects = null
+            kitPlayer.position = null
+            database.updatePlayer(kitPlayer)
+        } else {
+            kitPlayer.gameData = gameDataParser.gameDataToJson(player)
+            kitPlayer.inventory = inventoryParser.inventoryToJson(player.inventory)
+            kitPlayer.potionEffects = potionEffectParser.effectsToJson(player)
+            kitPlayer.position = locParse.locToStr(player.location)
+            database.updatePlayer(kitPlayer)
+        }
     }
 
     fun playerDataLoad(playerName: String): KitPlayer {
@@ -147,14 +134,17 @@ class PlayerService(
             kitPlayer.availableKits
         )
     }
-
-    fun moveToSpawn(player: Player) {
-        val spawn = serverInfoService.serverInfo!!.spawn
-        if (spawn != null) player.teleport(spawn)
+    fun getDonateGroupBooster(donateGroup: Int): Double {
+        return when (donateGroup) {
+            in 1..2 -> 0.05
+            3 -> 0.1
+            4 -> 0.15
+            5 -> 0.2
+            6 -> 0.27
+            7 -> 0.35
+            8 -> 0.4
+            9 -> 0.5
+            else -> 0.0
+        }
     }
-
-    fun moveToOwnPosition(player: Player, pos: Location) {
-        player.teleport(pos)
-    }
-
 }

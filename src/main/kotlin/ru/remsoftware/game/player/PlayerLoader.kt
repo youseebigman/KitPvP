@@ -16,7 +16,7 @@ class PlayerLoader(
         private set
     var money = 0
         private set
-    var donateGroup = "default"
+    var donateGroup = 0
         private set
     var arena = "lobby"
         private set

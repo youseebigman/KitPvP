@@ -80,11 +80,12 @@ class KitpvpTabComplete : TabCompleter {
                             return SortingUtil.sortListWithStartLetters(commandList, startArgs)
                         }
 
+
                     }
                     if (args.size == 3) {
                         if (args[1].equals("sign", ignoreCase = true)) {
                             val commandList = listOf("work", "create", "update")
-                            val startArgs = args[1]
+                            val startArgs = args[2]
                             return SortingUtil.sortListWithStartLetters(commandList, startArgs)
                         }
                         if (args[0].equals("booster", ignoreCase = true)) {

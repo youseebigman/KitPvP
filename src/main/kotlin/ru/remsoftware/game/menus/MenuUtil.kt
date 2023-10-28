@@ -19,6 +19,8 @@ class MenuUtil {
         addItemFlags(*ItemFlag.values())
     }.build()
 
+
+
     fun checkPlayerInventoryForBuy(player: Player, playerService: PlayerService): Boolean {
         val inventory = player.inventory
         val check = inventory.firstEmpty()

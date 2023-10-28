@@ -43,7 +43,7 @@ class PlayerInteractListener(
             } else if (handItem.type == Material.SPLASH_POTION) {
                 if (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK) {
                     if (handItem.name != null) {
-                        val itemName = ChatColor.stripColor(handItem.name)
+                        val itemName = handItem.name!!.replace("§", "&")
                         val customPotionsNameList = potionService.getAllPotionsName()
                         if (customPotionsNameList.contains(itemName)) {
                             val customPotion = potionService[itemName]
@@ -62,11 +62,19 @@ class PlayerInteractListener(
                                 }
                                 CooldownUtil.put(itemName, player, customPotion!!.cooldown)
                                 if (slot != 0) {
-                                    GlobalTaskContext.asyncAfter(1) {
+                                    GlobalTaskContext.asyncAfter(5) {
                                         player.inventory.setItem(slot, newItem)
                                         it.cancel()
                                     }
-
+                                } else {
+                                    for (itemSlot in inventory.withIndex()) {
+                                        if (itemSlot.value == null || itemSlot.value.equals(Material.AIR)) {
+                                            player.inventory.setItem(itemSlot.index, newItem)
+                                            break
+                                        } else {
+                                            continue
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -76,8 +84,8 @@ class PlayerInteractListener(
 
         }
         if (event.clickedBlock != null) {
-            val block = event.clickedBlock
-            if (block.type.equals(Material.SIGN_POST) || block.type.equals(Material.WALL_SIGN)) {
+            if (event.clickedBlock.type.equals(Material.SIGN_POST) || event.clickedBlock.type.equals(Material.WALL_SIGN)) {
+                val block = event.clickedBlock
                 if (signService.signWorkers.contains(player.name)) {
                     signService.selectSign(block)
                     ChatUtil.sendMessage(player, "&aВы успешно выбрали табличку, можете присвоить ей данные")

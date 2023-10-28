@@ -11,6 +11,7 @@ import ru.remsoftware.game.kits.KitManager
 import ru.remsoftware.game.kits.KitService
 import ru.remsoftware.game.money.MoneyManager
 import ru.remsoftware.game.player.PlayerService
+import ru.remsoftware.utils.parser.InventoryParser
 import ru.starfarm.core.ApiManager
 import ru.starfarm.core.inventory.container.InventoryContainer
 import ru.starfarm.core.util.format.ChatUtil
@@ -24,6 +25,7 @@ class ShopMenu(
     private val menuUtil: MenuUtil,
     private val playerService: PlayerService,
     private val arenaService: ArenaService,
+    private val inventoryParser: InventoryParser,
 ) : InventoryContainer("Магазин", 6) {
     override fun drawInventory(player: Player) {
         val armorShopItem = ApiManager.newItemBuilder(Material.IRON_HELMET).apply {
@@ -45,13 +47,13 @@ class ShopMenu(
             addItemFlags(ItemFlag.HIDE_ENCHANTS)
         }.build()
         addItem(21, armorShopItem) { _, _ ->
-            ArmorShop(kitManager, kitService, moneyManager, menuUtil, playerService, arenaService).openInventory(player)
+            ArmorShop(kitManager, kitService, moneyManager, menuUtil, playerService, arenaService, inventoryParser).openInventory(player)
         }
         addItem(23, armorEnchantShopItem) { _, _ ->
-            ArmorEnchantShop(kitManager, kitService, moneyManager, menuUtil, playerService, arenaService).openInventory(player)
+            ArmorEnchantShop(kitManager, kitService, moneyManager, menuUtil, playerService, arenaService, inventoryParser).openInventory(player)
         }
         addItem(45, menuUtil.backButton) { _, _ ->
-            MainMenu(kitManager, kitService, menuUtil, moneyManager, playerService, arenaService).openInventory(player)
+            MainMenu(kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
         }
     }
 }
@@ -63,6 +65,7 @@ class ArmorShop(
     private val menuUtil: MenuUtil,
     private val playerService: PlayerService,
     private val arenaService: ArenaService,
+    private val inventoryParser: InventoryParser,
 ) : InventoryContainer("Покупка предметов", 6) {
     override fun drawInventory(player: Player) {
         val ironArmorPrice: Int = 500
@@ -144,7 +147,7 @@ class ArmorShop(
             }
         }
         addItem(45, menuUtil.backButton) { _, _ ->
-            ShopMenu(kitManager, kitService, moneyManager, menuUtil, playerService, arenaService).openInventory(player)
+            ShopMenu(kitManager, kitService, moneyManager, menuUtil, playerService, arenaService, inventoryParser).openInventory(player)
         }
     }
 }
@@ -156,6 +159,7 @@ class ArmorEnchantShop(
     private val menuUtil: MenuUtil,
     private val playerService: PlayerService,
     private val arenaService: ArenaService,
+    private val inventoryParser: InventoryParser,
 ) : InventoryContainer("Зачарование предметов", 6) {
     override fun drawInventory(player: Player) {
         val armorList = arrayListOf<ItemStack>()
@@ -169,11 +173,11 @@ class ArmorEnchantShop(
         armorList.withIndex().forEach {
             val item = ApiManager.newItemBuilder(it.value).build()
             addItem(it.index, item) { _, _ ->
-                EnchantMenu(item, menuUtil, moneyManager, kitManager, kitService, playerService, arenaService).openInventory(player)
+                EnchantMenu(item, menuUtil, moneyManager, kitManager, kitService, playerService, arenaService, inventoryParser).openInventory(player)
             }
         }
         addItem(45, menuUtil.backButton) { _, _ ->
-            ShopMenu(kitManager, kitService, moneyManager, menuUtil, playerService, arenaService).openInventory(player)
+            ShopMenu(kitManager, kitService, moneyManager, menuUtil, playerService, arenaService, inventoryParser).openInventory(player)
         }
     }
 }
@@ -186,6 +190,7 @@ class EnchantMenu(
     private val kitService: KitService,
     private val playerService: PlayerService,
     private val arenaService: ArenaService,
+    private val inventoryParser: InventoryParser,
 ) : InventoryContainer("Зачарование предметов", 4) {
     override fun drawInventory(player: Player) {
         val durabilityPrice = listOf(100, 250, 500)
@@ -277,7 +282,7 @@ class EnchantMenu(
         }
 
         addItem(27, menuUtil.backButton) { _, _ ->
-            ArmorEnchantShop(kitManager, kitService, moneyManager, menuUtil, playerService, arenaService).openInventory(player)
+            ArmorEnchantShop(kitManager, kitService, moneyManager, menuUtil, playerService, arenaService, inventoryParser).openInventory(player)
         }
     }
     fun createEnchantsItems(item: ItemStack, player: Player, priceList: List<Int>, counter: Int, row: Int, enchantment: Enchantment) {
@@ -311,7 +316,7 @@ class EnchantMenu(
                     moneyManager.removeMoneyBecauseBuy(player, priceList[counter])
                     player.inventory.remove(item)
                     player.inventory.addItem(newItem)
-                    ArmorEnchantShop(kitManager, kitService, moneyManager, menuUtil, playerService, arenaService).openInventory(player)
+                    ArmorEnchantShop(kitManager, kitService, moneyManager, menuUtil, playerService, arenaService, inventoryParser).openInventory(player)
                 }
             } else {
                 if (enchantLevel < counter + 1) {
@@ -319,7 +324,7 @@ class EnchantMenu(
                         moneyManager.removeMoneyBecauseBuy(player, priceList[counter])
                         player.inventory.remove(item)
                         player.inventory.addItem(newItem)
-                        ArmorEnchantShop(kitManager, kitService, moneyManager, menuUtil, playerService, arenaService).openInventory(player)
+                        ArmorEnchantShop(kitManager, kitService, moneyManager, menuUtil, playerService, arenaService, inventoryParser).openInventory(player)
                     }
                 } else {
                     player.closeInventory()

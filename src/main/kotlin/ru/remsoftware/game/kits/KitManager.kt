@@ -12,7 +12,11 @@ import ru.remsoftware.utils.Logger
 import ru.remsoftware.utils.parser.InventoryParser
 import ru.remsoftware.utils.parser.PotionEffectParser
 import ru.starfarm.core.util.format.ChatUtil
+import ru.starfarm.core.util.number.NumberUtil
+import ru.starfarm.core.util.time.CooldownUtil
+import ru.starfarm.core.util.time.Time
 import ru.tinkoff.kora.common.Component
+import java.util.concurrent.TimeUnit
 
 @Component
 class KitManager(
@@ -23,6 +27,20 @@ class KitManager(
     private val moneyManager: MoneyManager,
     private val logger: Logger,
 ) {
+
+    fun getDonateKit(player: Player, data: KitData) {
+        val name = data.name
+        if (CooldownUtil.has(name, player)) {
+            val timeLeft = NumberUtil.getTime(CooldownUtil.get(name, player))
+            ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Вы сможете взять этот кит через $timeLeft")
+            player.playSound(player.eyeLocation, Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F)
+            player.closeInventory()
+        } else {
+            setKit(player, data)
+            CooldownUtil.put(name, player, 1800000)
+            logger.log("Игрок ${player.name} взял кит $name")
+        }
+    }
     fun buyKit(player: Player, data: KitData) {
         val kitPlayer = playerService[player]!!
         val playerBalance = kitPlayer.money
@@ -71,20 +89,20 @@ class KitManager(
         if (kitService[name] != null) {
             ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Кит с таким названием уже существует")
         } else {
-            val icon = player.inventory.itemInOffHand.type.toString()
+            val icon = inventoryParser.itemToJson(player.inventory.itemInOffHand).toString()
             player.inventory.clear(40)
             val kitInventory = inventoryParser.inventoryToJson(player.inventory)
             val kitPotionEffect = potionEffectParser.effectsToJson(player)
-            val kitData = KitData(name, icon, kitInventory, kitPotionEffect, price, null, null)
+            val kitData = KitData(name, icon, kitInventory, kitPotionEffect, price, null)
             kitService.createKit(kitData, database)
         }
     }
     fun updateKit(database: DataBaseRepository, player: Player, name: String, price: Int) {
-        val icon = player.inventory.itemInOffHand.type.toString()
+        val icon = inventoryParser.itemToJson(player.inventory.itemInOffHand).toString()
         player.inventory.clear(40)
         val kitInventory = inventoryParser.inventoryToJson(player.inventory)
         val kitPotionEffect = potionEffectParser.effectsToJson(player)
-        val kitData = KitData(name, icon, kitInventory, kitPotionEffect, price, null, null)
+        val kitData = KitData(name, icon, kitInventory, kitPotionEffect, price, null)
         kitService.updateKit(kitData, database)
     }
 }

@@ -2,9 +2,12 @@ name: KitPvP
 main: ru.remsoftware.Kitpvp
 version: 1.0.0
 api-version: 1.12
+loadbefore: [SlimeWorldManager]
 author: StarFarm
 softdepend: [Core]
 commands:
   kitpvp:
     aliases: [k, kit]
+    usage: /<command>
+  spawn:
     usage: /<command>

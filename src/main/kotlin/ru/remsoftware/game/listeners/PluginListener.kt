@@ -8,6 +8,7 @@ import org.bukkit.event.server.PluginDisableEvent
 import org.bukkit.event.server.PluginEnableEvent
 import ru.remsoftware.database.DataBaseRepository
 import ru.remsoftware.game.kits.KitService
+import ru.remsoftware.game.player.PlayerCombatManager
 import ru.remsoftware.game.player.PlayerService
 import ru.remsoftware.game.potions.PotionService
 import ru.remsoftware.game.signs.MoneySignData
@@ -16,6 +17,7 @@ import ru.remsoftware.server.ServerInfoData
 import ru.remsoftware.server.ServerInfoService
 import ru.remsoftware.utils.Logger
 import ru.remsoftware.utils.parser.LocationParser
+import ru.starfarm.core.task.GlobalTaskContext
 import ru.tinkoff.kora.common.Component
 
 @Component
@@ -28,26 +30,32 @@ class PluginListener(
     private val serverInfoService: ServerInfoService,
     private val kitService: KitService,
     private val potionService: PotionService,
+    private val playerCombatManager: PlayerCombatManager,
 ) : Listener {
-    var world: World? = null
+
 
     @EventHandler
     fun onPluginEnabled(event: PluginEnableEvent) {
-        world = Bukkit.getServer().getWorld("world")
-        serverInfoService.serverInfo = serverInfoService.loadInfo(world!!, database, locParse)
-        signService.moneySignsLoader(logger, database)
         kitService.kitsLoader(database, logger)
         potionService.potionDataLoad(database, logger)
+        GlobalTaskContext.after(10) {
+            serverInfoService.serverInfo = serverInfoService.loadInfo(database, locParse)
+            signService.moneySignsLoader(logger, database)
+            it.cancel()
+        }
+
     }
+
     @EventHandler
     fun onPluginDisable(event: PluginDisableEvent) {
+        playerCombatManager.combatMap.clear()
         val serverInfo = serverInfoService.serverInfo
         if (serverInfo!!.spawn == null) {
             val serverData = ServerInfoData(null, serverInfo.globalBooster)
-            database.updateServerData(world!!.name, serverData)
+            database.updateServerData(serverData)
         } else {
             val serverData = ServerInfoData(locParse.locToStr(serverInfo.spawn!!), serverInfo.globalBooster)
-            database.updateServerData(world!!.name, serverData)
+            database.updateServerData(serverData)
         }
         for (player in playerService.all()) {
             database.updatePlayer(player)

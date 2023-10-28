@@ -6,7 +6,7 @@ data class KitPlayer(
     var potionEffects: String?,
     var kit: String,
     var money: Int,
-    var donateGroup: String,
+    var donateGroup: Int,
     var arena: String,
     var kills: Int,
     var currentKills: Int,

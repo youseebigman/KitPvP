@@ -12,8 +12,8 @@ class ServerInfoService(
 ) {
     var serverInfo: ServerInfo? = null
 
-    fun loadInfo(world: World, database: DataBaseRepository, locationParser: LocationParser) : ServerInfo {
-        val infoLoader = ServerInfoLoader(world, database)
+    fun loadInfo(database: DataBaseRepository, locationParser: LocationParser) : ServerInfo {
+        val infoLoader = ServerInfoLoader(database)
         logger.log("Загрузка данных сервера")
         return if (infoLoader.spawn == null) {
             ServerInfo(null, infoLoader.globalBooster)

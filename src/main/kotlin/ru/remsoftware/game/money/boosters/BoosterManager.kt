@@ -27,7 +27,7 @@ class BoosterManager(
         val kitPlayer = playerService[playerName]!!
         kitPlayer.activeBooster = true
         kitPlayer.boosterTime = duration
-        kitPlayer.localBooster = 1.5
+        kitPlayer.localBooster += 0.5
         playerService[playerName] = kitPlayer
         dataBase.updatePlayer(kitPlayer)
         val player = Bukkit.getPlayer(playerName)
@@ -39,12 +39,12 @@ class BoosterManager(
     fun removeBooster(player: Player) {
         val playerName = player.name
         val kitPlayer = playerService[playerName]!!
-        kitPlayer.localBooster = 1.0
+        kitPlayer.localBooster -= 0.5
         kitPlayer.activeBooster = false
         kitPlayer.boosterTime = 0
         playerService[playerName] = kitPlayer
         dataBase.updatePlayer(kitPlayer)
-        ChatUtil.sendMessage(player, "&&8[&b&lKit&4&lPvP&8]&c&lВремя вашего бустера вышло!")
+        ChatUtil.sendMessage(player, "&&8[&b&lKit&4&lPvP&8]&c&l Время вашего бустера вышло!")
         player.playSound(player.eyeLocation, Sound.BLOCK_LAVA_EXTINGUISH, 1f, 1f)
     }
 
@@ -56,6 +56,8 @@ class BoosterManager(
             val boosterRemainingTime = booster.remainingTime
             booster.remainingTime -= 1
             if (!Bukkit.getServer().onlinePlayers.contains(player)) {
+                kitPlayer.localBooster -= 0.5
+                dataBase.updatePlayer(kitPlayer)
                 it.cancel()
             } else {
                 kitPlayer.boosterTime = booster.remainingTime

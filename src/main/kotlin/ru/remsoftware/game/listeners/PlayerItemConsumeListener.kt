@@ -1,12 +1,11 @@
 package ru.remsoftware.game.listeners
 
-import org.bukkit.ChatColor
 import org.bukkit.Material
 import org.bukkit.Sound
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerItemConsumeEvent
-import ru.remsoftware.game.player.PlayerDamageService
+import ru.remsoftware.game.player.PlayerAbsorptionService
 import ru.remsoftware.game.potions.PotionService
 import ru.remsoftware.utils.VariationMessages
 import ru.remsoftware.utils.parser.PotionEffectParser
@@ -17,7 +16,7 @@ import java.util.concurrent.TimeUnit
 
 @Component
 class PlayerItemConsumeListener(
-    private val damageService: PlayerDamageService,
+    private val damageService: PlayerAbsorptionService,
     private val potionService: PotionService,
     private val potionEffectParser: PotionEffectParser,
 ) : Listener {
@@ -27,7 +26,7 @@ class PlayerItemConsumeListener(
         val item = event.item
         val player = event.player
         if (item.name != null) {
-            val itemName = ChatColor.stripColor(item.name)
+            val itemName = item.name!!.replace("§", "&")
             val customPotionsNameList = potionService.getAllPotionsName()
             if (customPotionsNameList.contains(itemName)) {
                 val customPotion = potionService[itemName]

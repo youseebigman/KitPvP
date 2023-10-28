@@ -11,7 +11,6 @@ import ru.tinkoff.kora.application.graph.KoraApplication
 class Kitpvp : CorePlugin() {
 
     override fun enable() {
-        //Class.forName("org.mysql.cj.jdbc.Driver")
         KoraApplication.run(ApplicationGraph::graph)
         unregisterService(IChatService::class.java)
         registerService(IScoreboardService::class.java, ScoreboardService())

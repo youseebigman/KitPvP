@@ -6,6 +6,5 @@ data class KitData(
     var inventory: String,
     var potionEffects: String,
     var price: Int,
-    var donateCooldown: Long?,
-    var donateGroup: String?,
+    var donateGroup: Int?,
 )

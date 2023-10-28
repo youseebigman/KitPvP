@@ -5,7 +5,7 @@ import org.bukkit.event.Listener
 import ru.tinkoff.kora.common.Component
 
 @Component
-class PlayerDamageService : Listener {
+class PlayerAbsorptionService : Listener {
     var newAmplifier: Int? = null
     var hasAbsorption: Boolean? = null
     val damageToAbsorption = hashMapOf<String, Int>()

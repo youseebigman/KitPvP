@@ -8,6 +8,7 @@ import ru.remsoftware.game.kits.KitManager
 import ru.remsoftware.game.kits.KitService
 import ru.remsoftware.game.money.MoneyManager
 import ru.remsoftware.game.player.PlayerService
+import ru.remsoftware.utils.parser.InventoryParser
 import ru.starfarm.core.ApiManager
 import ru.starfarm.core.inventory.container.InventoryContainer
 import ru.tinkoff.kora.common.Component
@@ -21,6 +22,7 @@ class KitsMenu(
     private val moneyManager: MoneyManager,
     private val playerService: PlayerService,
     private val arenaService: ArenaService,
+    private val inventoryParser: InventoryParser,
 ) : InventoryContainer("Выбор кита", 6) {
     override fun drawInventory(player: Player) {
         val freeKitsItem = ApiManager.newItemBuilder(Material.LEATHER_CHESTPLATE).apply {
@@ -31,7 +33,7 @@ class KitsMenu(
             addItemFlags(*ItemFlag.values())
         }.build()
         addItem(19, freeKitsItem) { _, _ ->
-            FreeKitsMenu(kitService, kitManager, menuUtil, moneyManager, playerService, arenaService).openInventory(player)
+            FreeKitsMenu(kitService, kitManager, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
         }
         val cheapKitsItem = ApiManager.newItemBuilder(Material.CHAINMAIL_CHESTPLATE).apply {
             name = "§aДешёвые киты"
@@ -41,7 +43,7 @@ class KitsMenu(
             addItemFlags(*ItemFlag.values())
         }.build()
         addItem(21, cheapKitsItem) { _, _ ->
-            CheapKitsMenu(kitService, kitManager, menuUtil, moneyManager, playerService, arenaService).openInventory(player)
+            CheapKitsMenu(kitService, kitManager, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
         }
         val averageKitsItem = ApiManager.newItemBuilder(Material.IRON_CHESTPLATE).apply {
             name = "§cНедорогие киты"
@@ -51,7 +53,7 @@ class KitsMenu(
             addItemFlags(*ItemFlag.values())
         }.build()
         addItem(23, averageKitsItem) { _, _ ->
-            AverageKitsMenu(kitService, kitManager, menuUtil, moneyManager, playerService, arenaService).openInventory(player)
+            AverageKitsMenu(kitService, kitManager, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
         }
         val bestKitsItem = ApiManager.newItemBuilder(Material.DIAMOND_CHESTPLATE).apply {
             name = "§5Дорогие киты"
@@ -61,10 +63,25 @@ class KitsMenu(
             addItemFlags(*ItemFlag.values())
         }.build()
         addItem(25, bestKitsItem) { _, _ ->
-            BestKitsMenu(kitService, kitManager, menuUtil, moneyManager, playerService, arenaService).openInventory(player)
+            BestKitsMenu(kitService, kitManager, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
+        }
+        val donateKitsMenu = ApiManager.newItemBuilder(Material.GOLD_CHESTPLATE).apply {
+            name = "§6Донат киты"
+
+            lore(
+                "",
+                "&2Игроки с донатом могут выбрать кит бесплатно",
+                "&2У каждого кита перезарядка 30 минут",
+                "",
+                "&2Обычные игроки могут купить кит за деньги"
+            )
+            addItemFlags(*ItemFlag.values())
+        }.build()
+        addItem(4, donateKitsMenu) { _, _ ->
+            DonateKitsMenu(kitService, kitManager, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
         }
         addItem(45, menuUtil.backButton) { _, _ ->
-            MainMenu(kitManager, kitService, menuUtil, moneyManager, playerService, arenaService).openInventory(player)
+            MainMenu(kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
         }
     }
 }
@@ -77,16 +94,17 @@ class FreeKitsMenu(
     private val moneyManager: MoneyManager,
     private val playerService: PlayerService,
     private val arenaService: ArenaService,
+    private val inventoryParser: InventoryParser,
 ) : InventoryContainer("Бесплатные киты", 6) {
     override fun drawInventory(player: Player) {
         val allFreeKits = Collections.unmodifiableCollection(kitService.freeKits.toSortedMap().values)
         allFreeKits.withIndex().forEach {
-            val item = ApiManager.newItemBuilder(Material.valueOf(it.value.icon)).apply {
+            val item = ApiManager.newItemBuilder(inventoryParser.jsonToItem(it.value.icon)).apply {
                 name = "§f${it.value.name}"
                 lore(
                     "§fЦена: §aБесплатно"
                 )
-                addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
+                addItemFlags(*ItemFlag.values())
             }.build()
             addItem(it.index, item) { _, _ ->
                 kitManager.buyKit(player, it.value)
@@ -94,7 +112,7 @@ class FreeKitsMenu(
             }
         }
         addItem(45, menuUtil.backButton) { _, _ ->
-            KitsMenu(kitService, kitManager, menuUtil, moneyManager, playerService, arenaService).openInventory(player)
+            KitsMenu(kitService, kitManager, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
         }
     }
 }
@@ -107,24 +125,24 @@ class CheapKitsMenu(
     private val moneyManager: MoneyManager,
     private val playerService: PlayerService,
     private val arenaService: ArenaService,
+    private val inventoryParser: InventoryParser,
 ) : InventoryContainer("Дешёвые киты", 6) {
     override fun drawInventory(player: Player) {
         val allCheapKits = Collections.unmodifiableCollection(kitService.cheapKitsMap.toSortedMap().values)
         allCheapKits.withIndex().forEach {
-            val item = ApiManager.newItemBuilder(Material.valueOf(it.value.icon)).apply {
+            val item = ApiManager.newItemBuilder(inventoryParser.jsonToItem(it.value.icon)).apply {
                 name = "§a${it.value.name}"
                 lore(
                     "§fЦена: §a$${it.value.price}"
                 )
-                addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
+                addItemFlags(*ItemFlag.values())
             }.build()
             addItem(it.index, item) { _, _ ->
-                kitManager.buyKit(player, it.value)
-                closeInventory(player)
+                ConfirmBuyKitMenu(false, item, it.value, kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
             }
         }
         addItem(45, menuUtil.backButton) { _, _ ->
-            KitsMenu(kitService, kitManager, menuUtil, moneyManager, playerService, arenaService).openInventory(player)
+            KitsMenu(kitService, kitManager, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
         }
     }
 }
@@ -137,25 +155,25 @@ class AverageKitsMenu(
     private val moneyManager: MoneyManager,
     private val playerService: PlayerService,
     private val arenaService: ArenaService,
+    private val inventoryParser: InventoryParser,
 ) : InventoryContainer("Недорогие киты", 6) {
     override fun drawInventory(player: Player) {
         val allAverageKits = Collections.unmodifiableCollection(kitService.averageKitsMap.toSortedMap().values)
         allAverageKits.withIndex().forEach {
-            val item = ApiManager.newItemBuilder(Material.valueOf(it.value.icon)).apply {
+            val item = ApiManager.newItemBuilder(inventoryParser.jsonToItem(it.value.icon)).apply {
                 name = "§c${it.value.name}"
                 lore(
                     "§fЦена: §a$${it.value.price}"
                 )
-                addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
+                addItemFlags(*ItemFlag.values())
             }.build()
             addItem(it.index, item) { _, _ ->
-                kitManager.buyKit(player, it.value)
-                closeInventory(player)
+                ConfirmBuyKitMenu(false, item, it.value, kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
             }
 
         }
         addItem(45, menuUtil.backButton) { _, _ ->
-            KitsMenu(kitService, kitManager, menuUtil, moneyManager, playerService, arenaService).openInventory(player)
+            KitsMenu(kitService, kitManager, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
         }
     }
 }
@@ -168,24 +186,110 @@ class BestKitsMenu(
     private val moneyManager: MoneyManager,
     private val playerService: PlayerService,
     private val arenaService: ArenaService,
+    private val inventoryParser: InventoryParser,
 ) : InventoryContainer("Дорогие киты", 6) {
     override fun drawInventory(player: Player) {
         val allBestKits = Collections.unmodifiableCollection(kitService.bestKitsMap.toSortedMap().values)
         allBestKits.withIndex().forEach {
-            val item = ApiManager.newItemBuilder(Material.valueOf(it.value.icon)).apply {
+            val item = ApiManager.newItemBuilder(inventoryParser.jsonToItem(it.value.icon)).apply {
                 name = "§5${it.value.name}"
                 lore(
                     "§fЦена: §a$${it.value.price}"
                 )
-                addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
+                addItemFlags(*ItemFlag.values())
             }.build()
             addItem(it.index, item) { _, _ ->
-                kitManager.buyKit(player, it.value)
-                closeInventory(player)
+                ConfirmBuyKitMenu(false, item, it.value, kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
             }
         }
         addItem(45, menuUtil.backButton) { _, _ ->
-            KitsMenu(kitService, kitManager, menuUtil, moneyManager, playerService, arenaService).openInventory(player)
+            KitsMenu(kitService, kitManager, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
+        }
+    }
+}
+
+class DonateKitsMenu(
+    private val kitService: KitService,
+    private val kitManager: KitManager,
+    private val menuUtil: MenuUtil,
+    private val moneyManager: MoneyManager,
+    private val playerService: PlayerService,
+    private val arenaService: ArenaService,
+    private val inventoryParser: InventoryParser,
+) : InventoryContainer("Донат киты", 6) {
+
+    val eliteKitSlots = arrayOf(10, 19, 28, 36)
+    val sponsorKitSlots = arrayOf(13, 22, 31, 39)
+    val uniqueKitSlots = arrayOf(16, 25, 33, 38)
+    val donateKits = Collections.unmodifiableCollection(kitService.donateKitsMap.values)
+    override fun drawInventory(player: Player) {
+        var eliteIndex = 0
+        var sponsorIndex = 0
+        var uniqueIndex = 0
+        donateKits.forEach {
+            if (it.donateGroup == 5) {
+                val item = ApiManager.newItemBuilder(inventoryParser.jsonToItem(it.icon)).apply {
+                    name = "§e${it.name}"
+                    lore(
+                        "",
+                        "§fЦена: §a$${it.price}",
+                        "&2Этот кит доступен для игроков с группой &e&lELITE"
+                    )
+                    addItemFlags(*ItemFlag.values())
+                }.build()
+                addItem(eliteKitSlots[eliteIndex], item) { _, _ ->
+                    val kitPlayer = playerService[player]!!
+                    if (kitPlayer.donateGroup >= 5) {
+                        ConfirmBuyKitMenu(true, item, it, kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
+                    } else {
+                        ConfirmBuyKitMenu(false, item, it, kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
+                    }
+                }
+                eliteIndex++
+            }
+            if (it.donateGroup == 7) {
+                val item = ApiManager.newItemBuilder(inventoryParser.jsonToItem(it.icon)).apply {
+                    name = "§6${it.name}"
+                    lore(
+                        "",
+                        "§fЦена: §a$${it.price}",
+                        "&2Этот кит доступен для игроков с группой &6&lSPONSOR"
+                    )
+                    addItemFlags(*ItemFlag.values())
+                }.build()
+                addItem(sponsorKitSlots[sponsorIndex], item) { _, _ ->
+                    val kitPlayer = playerService[player]!!
+                    if (kitPlayer.donateGroup >= 7) {
+                        ConfirmBuyKitMenu(true, item, it, kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
+                    } else {
+                        ConfirmBuyKitMenu(false, item, it, kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
+                    }
+                }
+                sponsorIndex++
+            }
+            if (it.donateGroup == 9) {
+                val item = ApiManager.newItemBuilder(inventoryParser.jsonToItem(it.icon)).apply {
+                    name = "§3${it.name}"
+                    lore(
+                        "",
+                        "§fЦена: §a$${it.price}",
+                        "&2Этот кит доступен для игроков с группой &3&lUNIQUE"
+                    )
+                    addItemFlags(*ItemFlag.values())
+                }.build()
+                addItem(uniqueKitSlots[uniqueIndex], item) { _, _ ->
+                    val kitPlayer = playerService[player]!!
+                    if (kitPlayer.donateGroup >= 9) {
+                        ConfirmBuyKitMenu(true, item, it, kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
+                    } else {
+                        ConfirmBuyKitMenu(false, item, it, kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
+                    }
+                }
+                uniqueIndex++
+            }
+        }
+        addItem(45, menuUtil.backButton) { _, _ ->
+            KitsMenu(kitService, kitManager, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
         }
     }
 }

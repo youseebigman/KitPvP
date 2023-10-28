@@ -7,13 +7,12 @@ import org.bukkit.inventory.meta.PotionMeta
 import org.bukkit.potion.PotionData
 import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
-import org.bukkit.potion.PotionType
-import ru.remsoftware.game.player.PlayerDamageService
+import ru.remsoftware.game.player.PlayerAbsorptionService
 import ru.tinkoff.kora.common.Component
 
 @Component
 class PotionEffectParser(
-    private val playerDamageService: PlayerDamageService,
+    private val playerAbsorptionService: PlayerAbsorptionService,
 ) {
 
     fun effectsToJson(player: Player): String {
@@ -21,7 +20,7 @@ class PotionEffectParser(
         val potionEffects = player.activePotionEffects
         for (effect in potionEffects) {
             if (effect.type.equals(PotionEffectType.ABSORPTION)) {
-                val abs = playerDamageService.hasAbsorption
+                val abs = playerAbsorptionService.hasAbsorption
                 if (abs != null && !abs) break
             }
             val effectJson = potionEffectToJson(effect)
@@ -92,7 +91,7 @@ class PotionEffectParser(
 
     fun potionEffectToJson(potionEffect: PotionEffect): String {
         if (potionEffect.type.equals(PotionEffectType.ABSORPTION)) {
-            val newAmplifier = playerDamageService.newAmplifier
+            val newAmplifier = playerAbsorptionService.newAmplifier
             if (newAmplifier != null) {
                 val pe = PotionEffect(PotionEffectType.ABSORPTION, potionEffect.duration, newAmplifier, potionEffect.isAmbient, potionEffect.hasParticles())
                 val peMap = pe.serialize()

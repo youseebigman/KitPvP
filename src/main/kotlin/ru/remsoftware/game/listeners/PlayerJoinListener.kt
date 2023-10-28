@@ -7,12 +7,14 @@ import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.inventory.ItemStack
 import ru.remsoftware.game.inventories.InventoryManager
 import ru.remsoftware.game.money.boosters.BoosterManager
+import ru.remsoftware.game.player.PlayerManager
 import ru.remsoftware.game.player.PlayerScoreboard
 import ru.remsoftware.game.player.PlayerService
 import ru.remsoftware.utils.parser.GameDataParser
 import ru.remsoftware.utils.parser.InventoryParser
 import ru.remsoftware.utils.parser.LocationParser
 import ru.remsoftware.utils.parser.PotionEffectParser
+import ru.starfarm.core.ApiManager
 import ru.tinkoff.kora.common.Component
 
 @Component
@@ -25,6 +27,7 @@ class PlayerJoinListener(
     private val potionEffectParser: PotionEffectParser,
     private val gameDataParser: GameDataParser,
     private val inventoryManager: InventoryManager,
+    private val playerManager: PlayerManager,
 ) : Listener {
 
     @EventHandler
@@ -36,12 +39,16 @@ class PlayerJoinListener(
         val potionEffects = kitPlayer.potionEffects
         val position = kitPlayer.position
         val kitInv = kitPlayer.inventory
-        playerScoreboard.loadScoreboard(player)
+        val playerProfile = ApiManager.getPlayerProfile(player)
+        if (playerProfile != null) {
+            val donateGroup = playerProfile.donateGroup.weight
+            kitPlayer.donateGroup = donateGroup
+        }
         if (position == null) {
-            playerService.moveToSpawn(player)
+            playerManager.moveToSpawn(player)
         } else {
             val pos = locationParser.strToLoc(position)
-            playerService.moveToOwnPosition(player, pos)
+            playerManager.moveToOwnPosition(player, pos)
         }
         if (potionEffects != null) {
             val effects = potionEffectParser.jsonToPotionEffect(potionEffects)
@@ -68,6 +75,7 @@ class PlayerJoinListener(
         if (kitPlayer.activeBooster) {
             boosterManager.createBooster(kitPlayer.boosterTime, true, player.name)
         }
+        playerScoreboard.loadScoreboard(player)
 
     }
 

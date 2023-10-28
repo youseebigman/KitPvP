@@ -61,7 +61,7 @@ class KitpvpCommands(
                     return true
                 } else {
                     if (args[0].equals("menu", ignoreCase = true)) {
-                        MainMenu(kitManager, kitService, menuUtil, moneyManager, playerService, arenaService).openInventory(player)
+                        MainMenu(kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
                     }
                     if (args[0].equals("potions", ignoreCase = true)) {
                         PotionMenu(potionService, inventoryParser, potionEffectParser).openInventory(player)
@@ -147,10 +147,7 @@ class KitpvpCommands(
                                             kitManager.createKit(database, player, kitName, kitPrice)
                                             ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&a Вы успешно создали кит $kitName!")
                                         }
-                                    } else {
-                                        ChatUtil.sendMessage(player, Tips.CREATE_TIPS.tip)
-                                    }
-                                    if (args[2].equals("update", ignoreCase = true)) {
+                                    } else if (args[2].equals("update", ignoreCase = true)) {
                                         val kitName = args[3]
                                         var kitPrice: Int? = null
                                         try {
@@ -159,7 +156,7 @@ class KitpvpCommands(
                                             ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Вы неправильно ввели цену!")
                                         }
                                         if (kitPrice != null) {
-                                            kitManager.createKit(database, player, kitName, kitPrice)
+                                            kitManager.updateKit(database, player, kitName, kitPrice)
                                             ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&a Вы успешно обновили кит $kitName!")
                                         }
                                     } else {
@@ -327,7 +324,7 @@ class KitpvpCommands(
                             if (args[1].equals("setspawn", ignoreCase = true)) {
                                 val loc = player.location
                                 serverInfoService.serverInfo!!.spawn = loc
-                                database.updateSpawn(loc.world.name, locationParser.locToStr(loc))
+                                database.updateSpawn(locationParser.locToStr(loc))
                             } else {
                                 ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&e /k server setspawn - установить спавн \n &8[&b&lKit&4&lPvP&8]&e /k server kit [get|create|update] Название (Цена) - работа с китами")
                             }
@@ -369,7 +366,7 @@ class KitpvpCommands(
                 }
             } else {
                 if (args[0].equals("menu", ignoreCase = true)) {
-                    MainMenu(kitManager, kitService, menuUtil, moneyManager, playerService, arenaService).openInventory(player)
+                    MainMenu(kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
                 } else {
                     ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c&l У вас нету прав на использование данной команды")
                 }

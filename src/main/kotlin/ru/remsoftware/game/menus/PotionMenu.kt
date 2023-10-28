@@ -23,7 +23,7 @@ class PotionMenu(
             val itemStack: ItemStack = inventoryParser.jsonToItem(it.value.potion)
             val itemMeta = itemStack.itemMeta
             val item = ApiManager.newItemBuilder(itemStack.type).apply {
-                name = "§f${it.value.name}"
+                name = it.value.name
                 lore(
                     "",
                     "§2Перезарядка: §b${TimeUnit.MILLISECONDS.toSeconds(it.value.cooldown)} секунд"

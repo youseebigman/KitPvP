@@ -30,7 +30,7 @@ interface DataBaseRepository : JdbcRepository {
     @Query("insert into kitpvp.kits_data (name, inventory, potion_effects, icon, price) values (:data.name, :data.inventory, :data.potionEffects, :data.icon, :data.price)")
     fun createKit(data: KitData)
 
-    @Query("select name, inventory, potion_effects, icon, price, donate_cooldown, donate_group from kitpvp.kits_data")
+    @Query("select name, inventory, potion_effects, icon, price, donate_group from kitpvp.kits_data")
     fun loadKitData(): List<KitData>?
 
     @Query("update kitpvp.kits_data set name = :data.name, inventory = :data.inventory, potion_effects = :data.potionEffects, icon = :data.icon, price = :data.price where name = :data.name")
@@ -62,17 +62,17 @@ interface DataBaseRepository : JdbcRepository {
 
     //Query for server data
 
-    @Query("insert into kitpvp.server_data (world, spawn, global_booster) values(:world, :data.spawn, :data.globalBooster)")
-    fun createServerData(world: String, data: ServerInfoData)
+    @Query("insert into kitpvp.server_data (spawn, global_booster) values(:data.spawn, :data.globalBooster)")
+    fun createServerData(data: ServerInfoData)
 
-    @Query("select spawn, global_booster from kitpvp.server_data where world = :world")
-    fun loadServerInfo(world: String): ServerInfoData?
+    @Query("select spawn, global_booster from kitpvp.server_data")
+    fun loadServerInfo(): ServerInfoData?
 
-    @Query("update kitpvp.server_data set spawn = :data.spawn, global_booster = :data.globalBooster where world = :world")
-    fun updateServerData(world: String, data: ServerInfoData)
+    @Query("update kitpvp.server_data set spawn = :data.spawn, global_booster = :data.globalBooster")
+    fun updateServerData(data: ServerInfoData)
 
-    @Query("update kitpvp.server_data set spawn = :location where world = :world")
-    fun updateSpawn(world: String, location: String)
+    @Query("update kitpvp.server_data set spawn = :location")
+    fun updateSpawn(location: String)
 
     // Query for arenas
 

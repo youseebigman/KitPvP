@@ -4,7 +4,6 @@ import org.bukkit.World
 import ru.remsoftware.database.DataBaseRepository
 
 class ServerInfoLoader(
-    private val world: World,
     private val database: DataBaseRepository,
 ) {
     var spawn: String? = null
@@ -14,10 +13,10 @@ class ServerInfoLoader(
         private set
 
     init {
-        var serverInfo = database.loadServerInfo(world.name)
+        var serverInfo = database.loadServerInfo()
         if (serverInfo == null) {
             serverInfo = ServerInfoData(spawn, globalBooster)
-            database.createServerData(world.name, serverInfo)
+            database.createServerData(serverInfo)
         }
 
         this.spawn = serverInfo.spawn

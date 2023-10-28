@@ -40,9 +40,14 @@ class PlayerScoreboard(
             setLine(1, ChatUtil.color("       &bwww.starfarm.fun"))
 
             addUpdater(20) { _, scoreboard ->
-                scoreboard.setLine(11, ChatUtil.color("&3&l     ${LocalDateTime.now(ZoneId.of("Europe/Moscow")).format(DateTimeFormatter.ofPattern("d.MM.yyyy HH:mm"))}"))
+                if (kitPlayer.activeBooster) {
+                    scoreboard.setLine(3, ChatUtil.color("  &fБустер: &a${NumberUtil.getTime(kitPlayer.boosterTime)}"))
+                } else {
+                    scoreboard.setLine(3, ChatUtil.color("  &fБустер: &eНету"))
+                }
             }
             addUpdater(60) { _, scoreboard ->
+                scoreboard.setLine(11, ChatUtil.color("&3&l     ${LocalDateTime.now(ZoneId.of("Europe/Moscow")).format(DateTimeFormatter.ofPattern("d.MM.yyyy HH:mm"))}"))
                 val kd: Double = if (kitPlayer.deaths == 0) {
                     kitPlayer.kills.toDouble() / 1
                 } else {
@@ -53,11 +58,6 @@ class PlayerScoreboard(
                 scoreboard.setLine(6, ChatUtil.color("  &fСмертей: &b${kitPlayer.deaths}"))
                 scoreboard.setLine(5, ChatUtil.color("  &fТекущие убийства: &b${kitPlayer.currentKills}"))
                 scoreboard.setLine(4, ChatUtil.color("  &fK/D: &b${"%.2f".format(kd)}"))
-                if (kitPlayer.activeBooster) {
-                    scoreboard.setLine(3, ChatUtil.color("  &fБустер: &a${NumberUtil.getTime(kitPlayer.boosterTime)}"))
-                } else {
-                    scoreboard.setLine(3, ChatUtil.color("  &fБустер: &eНету"))
-                }
             }
         }.build(player)
     }
