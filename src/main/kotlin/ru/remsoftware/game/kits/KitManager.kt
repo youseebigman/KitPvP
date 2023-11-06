@@ -28,6 +28,17 @@ class KitManager(
     private val logger: Logger,
 ) {
 
+    fun getPlayerAvailableKits(name: String): ArrayList<KitData>? {
+        val availableKitList = playerService.getAvailableKitList(name)
+        val kitDataList = arrayListOf<KitData>()
+        if (availableKitList == null) return null
+        availableKitList.forEach {
+            val kitData = kitService[it]!!
+            kitDataList.add(kitData)
+        }
+        return kitDataList
+    }
+
     fun getDonateKit(player: Player, data: KitData) {
         val name = data.name
         if (CooldownUtil.has(name, player)) {
@@ -41,50 +52,94 @@ class KitManager(
             logger.log("Игрок ${player.name} взял кит $name")
         }
     }
+
     fun buyKit(player: Player, data: KitData) {
         val kitPlayer = playerService[player]!!
-        val playerBalance = kitPlayer.money
-        val price = data.price
-        if (playerBalance < price) {
-            ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c У вас недостаточно монет для покупки этого класса")
-            player.playSound(player.eyeLocation, Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F)
+        if (kitPlayer.kit.equals(data.name)) {
+            ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Вы уже выбрали себе такой кит!")
+            player.closeInventory()
         } else {
-            moneyManager.removeMoneyBecauseBuy(player, price)
-            setKit(player, data)
-            logger.log("Игрок ${player.name} купил кит ${data.name}")
+            val playerBalance = kitPlayer.money
+            val price = data.price
+            if (playerBalance < price) {
+                ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c У вас недостаточно монет для покупки этого класса")
+                player.playSound(player.eyeLocation, Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F)
+            } else {
+                moneyManager.removeMoneyBecauseBuy(player, price)
+                setKit(player, data)
+                logger.log("Игрок ${player.name} купил кит ${data.name}. Текущий баланс: ${kitPlayer.money}")
+            }
         }
+    }
 
+    fun buyKitForever(player: Player, data: KitData) {
+        val kitPlayer = playerService[player]!!
+        val availableKits = playerService.getAvailableKitList(player.name)
+        if (availableKits != null) {
+            if (availableKits.contains(data.name)) {
+                ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c У вас уже куплен этот кит навсегда!")
+                player.closeInventory()
+            } else {
+                val playerBalance = kitPlayer.money
+                val price = data.price * 10
+                if (playerBalance < price) {
+                    ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c У вас недостаточно монет для покупки этого класса навсегда")
+                    player.playSound(player.eyeLocation, Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F)
+                } else {
+                    moneyManager.removeMoneyBecauseBuy(player, price)
+                    playerService.addAvailableKits(player.name, data.name)
+                    logger.log("Игрок ${player.name} купил кит ${data.name} навсегда. Текущий баланс: ${kitPlayer.money}")
+                }
+            }
+        } else {
+            val playerBalance = kitPlayer.money
+            val price = data.price * 10
+            if (playerBalance < price) {
+                ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c У вас недостаточно монет для покупки этого класса навсегда")
+                player.playSound(player.eyeLocation, Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F)
+            } else {
+                moneyManager.removeMoneyBecauseBuy(player, price)
+                playerService.addAvailableKits(player.name, data.name)
+                logger.log("Игрок ${player.name} купил кит ${data.name} навсегда. Текущий баланс: ${kitPlayer.money}")
+            }
+        }
     }
 
     fun setKit(player: Player, data: KitData) {
         val kitPlayer = playerService.get(player)
         if (kitPlayer != null) {
-            kitPlayer.kit = data.name
-            kitPlayer.inventory = data.inventory
-            val kitInventory = inventoryParser.jsonToInventory(data.inventory)
-            val kitPotionEffect = potionEffectParser.jsonToPotionEffect(data.potionEffects)
-            if (player.activePotionEffects != null) {
-                val pEffects = player.activePotionEffects
-                for (effect in pEffects) {
-                    if (effect.type.equals(PotionEffectType.HEALTH_BOOST)) {
-                        player.health = 20.0
+            if (kitPlayer.kit.equals(data.name)) {
+                ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Вы уже выбрали себе такой кит!")
+                player.closeInventory()
+            } else {
+                kitPlayer.kit = data.name
+                kitPlayer.inventory = data.inventory
+                val kitInventory = inventoryParser.jsonToInventory(data.inventory)
+                val kitPotionEffect = potionEffectParser.jsonToPotionEffect(data.potionEffects)
+                if (player.activePotionEffects != null) {
+                    val pEffects = player.activePotionEffects
+                    for (effect in pEffects) {
+                        if (effect.type.equals(PotionEffectType.HEALTH_BOOST)) {
+                            player.health = 20.0
+                        }
+                        player.removePotionEffect(effect.type)
                     }
-                    player.removePotionEffect(effect.type)
                 }
-            }
-            player.inventory.clear()
-            for (item in kitInventory.withIndex()) {
-                if (item.value == null) {
-                    continue
-                } else {
-                    player.inventory.setItem(item.index, item.value)
+                player.inventory.clear()
+                for (item in kitInventory.withIndex()) {
+                    if (item.value == null) {
+                        continue
+                    } else {
+                        player.inventory.setItem(item.index, item.value)
+                    }
                 }
-            }
-            for (potionEffect in kitPotionEffect) {
-                player.addPotionEffect(potionEffect)
+                for (potionEffect in kitPotionEffect) {
+                    player.addPotionEffect(potionEffect)
+                }
             }
         }
     }
+
     fun createKit(database: DataBaseRepository, player: Player, name: String, price: Int) {
         if (kitService[name] != null) {
             ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Кит с таким названием уже существует")
@@ -97,6 +152,7 @@ class KitManager(
             kitService.createKit(kitData, database)
         }
     }
+
     fun updateKit(database: DataBaseRepository, player: Player, name: String, price: Int) {
         val icon = inventoryParser.itemToJson(player.inventory.itemInOffHand).toString()
         player.inventory.clear(40)

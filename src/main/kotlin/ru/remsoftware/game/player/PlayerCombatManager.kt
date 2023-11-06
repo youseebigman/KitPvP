@@ -1,11 +1,13 @@
 package ru.remsoftware.game.player
 
+import org.bukkit.entity.Arrow
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntityDamageByEntityEvent
 import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.potion.PotionEffectType
+import org.bukkit.projectiles.ProjectileSource
 import ru.starfarm.core.task.GlobalTaskContext
 import ru.starfarm.core.util.format.ChatUtil
 import ru.tinkoff.kora.common.Component
@@ -24,6 +26,7 @@ class PlayerCombatManager(
     fun setCombat(name: String, kd: Long) {
         combatMap[name] = kd
     }
+
     fun setLastDamager(name: String, damagerName: String) {
         lastDamagerMap[name] = damagerName
     }
@@ -32,46 +35,55 @@ class PlayerCombatManager(
     fun onEntityDamageEntity(event: EntityDamageByEntityEvent) {
         val player = event.entity
         val playerName = player.name
-        val damager = event.damager
-        val damagerName = damager.name
-        val combatDuration = System.currentTimeMillis() + 8000
-        if (player is Player) {
-            val hasDuration = isCombatPlayer(playerName)
-            if (!hasDuration) {
-                ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&e Вы начали бой с игроком! Не получайте и не наносите урон 8 секунд чтобы телепортироваться или выйти из игры!")
-                setLastDamager(playerName, damagerName)
-                setCombat(playerName, combatDuration)
-                GlobalTaskContext.everyAsync(1, 20) {
-                    val playerCombatDuration = getCombatDuration(playerName)
-                    if (System.currentTimeMillis() >= playerCombatDuration!!) {
-                        invalidateCombat(playerName)
-                        invalidateLastDamager(playerName)
-                        it.cancel()
-                    }
-                }
-            } else {
-                setCombat(playerName, combatDuration)
-            }
-            if (player.hasPotionEffect(PotionEffectType.ABSORPTION)) {
-                handleAbsorptionHP(player, event.damage)
+        var damager = event.damager
+        var damagerName = damager.name
+        if (damager is Arrow) {
+            val shooter = damager.shooter
+            if (shooter is Player) {
+                damager = shooter
+                damagerName = shooter.name
             }
         }
-        if (damager is Player) {
-            val hasDuration = isCombatPlayer(damagerName)
-            if (!hasDuration) {
-                ChatUtil.sendMessage(damager, "&8[&b&lKit&4&lPvP&8]&e Вы начали бой с игроком! Не получайте и не наносите урон 8 секунд чтобы телепортироваться или выйти из игры!")
-                setLastDamager(damagerName, playerName)
-                setCombat(damagerName, combatDuration)
-                GlobalTaskContext.everyAsync(1, 20) {
-                    val playerCombatDuration = getCombatDuration(damagerName)!!
-                    if (System.currentTimeMillis() >= playerCombatDuration) {
-                        invalidateCombat(damagerName)
-                        invalidateLastDamager(damagerName)
-                        it.cancel()
+        if (!damagerName.equals(playerName)) {
+            val combatDuration = System.currentTimeMillis() + 8000
+            if (player is Player) {
+                val hasDuration = isCombatPlayer(playerName)
+                if (!hasDuration) {
+                    ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&e Вы начали бой с игроком! Не получайте и не наносите урон 8 секунд чтобы телепортироваться или выйти из игры!")
+                    setLastDamager(playerName, damagerName)
+                    setCombat(playerName, combatDuration)
+                    GlobalTaskContext.everyAsync(1, 20) {
+                        val playerCombatDuration = getCombatDuration(playerName)
+                        if (System.currentTimeMillis() >= playerCombatDuration!!) {
+                            invalidateCombat(playerName)
+                            invalidateLastDamager(playerName)
+                            it.cancel()
+                        }
                     }
+                } else {
+                    setCombat(playerName, combatDuration)
                 }
-            } else {
-                setCombat(damagerName, combatDuration)
+                if (player.hasPotionEffect(PotionEffectType.ABSORPTION)) {
+                    handleAbsorptionHP(player, event.damage)
+                }
+            }
+            if (damager is Player) {
+                val hasDuration = isCombatPlayer(damagerName)
+                if (!hasDuration) {
+                    ChatUtil.sendMessage(damager, "&8[&b&lKit&4&lPvP&8]&e Вы начали бой с игроком! Не получайте и не наносите урон 8 секунд чтобы телепортироваться или выйти из игры!")
+                    setLastDamager(damagerName, playerName)
+                    setCombat(damagerName, combatDuration)
+                    GlobalTaskContext.everyAsync(1, 20) {
+                        val playerCombatDuration = getCombatDuration(damagerName)!!
+                        if (System.currentTimeMillis() >= playerCombatDuration) {
+                            invalidateCombat(damagerName)
+                            invalidateLastDamager(damagerName)
+                            it.cancel()
+                        }
+                    }
+                } else {
+                    setCombat(damagerName, combatDuration)
+                }
             }
         }
     }

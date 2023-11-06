@@ -53,7 +53,7 @@ class PlayerInteractListener(
                                 VariationMessages.sendMessageWithVariants(timeLeft.toInt(), player, "potion_wait", null, null)
                                 player.playSound(player.eyeLocation, Sound.BLOCK_NOTE_BASS, 1.0f, 1.0f)
                             } else {
-                                var slot = 0
+                                var slot: Int? = null
                                 for (item in inventory.withIndex()) {
                                     if (item.value == handItem) {
                                         slot = item.index
@@ -61,18 +61,21 @@ class PlayerInteractListener(
                                     }
                                 }
                                 CooldownUtil.put(itemName, player, customPotion!!.cooldown)
-                                if (slot != 0) {
-                                    GlobalTaskContext.asyncAfter(5) {
+                                if (slot != null) {
+                                    GlobalTaskContext.asyncAfter(10) {
                                         player.inventory.setItem(slot, newItem)
                                         it.cancel()
                                     }
                                 } else {
-                                    for (itemSlot in inventory.withIndex()) {
-                                        if (itemSlot.value == null || itemSlot.value.equals(Material.AIR)) {
-                                            player.inventory.setItem(itemSlot.index, newItem)
-                                            break
-                                        } else {
-                                            continue
+                                    GlobalTaskContext.asyncAfter(10) {
+                                        for (itemSlot in inventory.withIndex()) {
+                                            if (itemSlot.value == null || itemSlot.value.equals(Material.AIR)) {
+                                                player.inventory.setItem(itemSlot.index, newItem)
+                                                it.cancel()
+                                                break
+                                            } else {
+                                                continue
+                                            }
                                         }
                                     }
                                 }
@@ -81,7 +84,6 @@ class PlayerInteractListener(
                     }
                 }
             }
-
         }
         if (event.clickedBlock != null) {
             if (event.clickedBlock.type.equals(Material.SIGN_POST) || event.clickedBlock.type.equals(Material.WALL_SIGN)) {
@@ -104,6 +106,8 @@ class PlayerInteractListener(
                         }
                     }
                 }
+            } else {
+                event.isCancelled = !player.isOp
             }
         }
     }

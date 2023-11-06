@@ -119,22 +119,38 @@ class PlayerManager(
     }
 
     fun combatPlayersDataManageOnQuit(killer: String, victim: String) {
-        val killerData = playerService[killer]!!
-        val victimData = playerService[victim]!!
-        val moneyForKill = moneyManager.handleMoneyOnKill(victimData.money) * 2
-        killerData.kills += 1
-        killerData.currentKills += 1
-        victimData.currentKills = 0
-        victimData.deaths += 1
-        victimData.kit = "default"
-        victimData.arena = "lobby"
-        moneyManager.addMoney(killer, moneyForKill)
-        moneyManager.removeMoneyBecauseDeath(victim, moneyForKill)
-        playerService[killer] = killerData
-        playerService[victim] = victimData
-        database.updatePlayer(killerData)
-        database.updatePlayer(victimData)
-        ChatUtil.sendMessage(Bukkit.getPlayer(killer), "&8[&b&lKit&4&lPvP&8]&f Ваш противник вышел из игры во время боя. Вы получили &a&l$moneyForKill &fмонет за его убийство")
+        val killerData = playerService[killer]
+        if (killerData == null) {
+            val killerOfflineData = playerService.playerDataLoad(killer)
+            val victimData = playerService[victim]!!
+            val moneyForKill = moneyManager.handleMoneyOnKill(victimData.money) * 2
+            killerOfflineData.kills += 1
+            killerOfflineData.currentKills += 1
+            victimData.currentKills = 0
+            victimData.deaths += 1
+            victimData.kit = "default"
+            victimData.arena = "lobby"
+            moneyManager.addMoney(killer, moneyForKill)
+            moneyManager.removeMoneyBecauseDeath(victim, moneyForKill)
+            database.updatePlayer(killerOfflineData)
+            database.updatePlayer(victimData)
+        } else {
+            val victimData = playerService[victim]!!
+            val moneyForKill = moneyManager.handleMoneyOnKill(victimData.money) * 2
+            killerData.kills += 1
+            killerData.currentKills += 1
+            victimData.currentKills = 0
+            victimData.deaths += 1
+            victimData.kit = "default"
+            victimData.arena = "lobby"
+            moneyManager.addMoney(killer, moneyForKill)
+            moneyManager.removeMoneyBecauseDeath(victim, moneyForKill)
+            playerService[killer] = killerData
+            playerService[victim] = victimData
+            database.updatePlayer(killerData)
+            database.updatePlayer(victimData)
+            ChatUtil.sendMessage(Bukkit.getPlayer(killer), "&8[&b&lKit&4&lPvP&8]&f Ваш противник вышел из игры во время боя. Вы получили &a&l$moneyForKill &fмонет за его убийство")
+        }
     }
 
 
@@ -152,7 +168,6 @@ class PlayerManager(
                 ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Вы не можете телепортироваться во время боя!")
             } else {
                 val donateGroup = kitPlayer.donateGroup
-                println(donateGroup)
                 var teleportDuration: Int = when {
                     donateGroup in 1..2 -> 7
                     donateGroup in 2..4 -> 6
@@ -171,7 +186,6 @@ class PlayerManager(
                     val currentZ = player.location.z.toInt()
                     if (teleportDuration != 0) {
                         if (x != currentX || z != currentZ) {
-                            println("$x, $z, $currentX. $currentZ")
                             teleportDuration = -1
                             ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Вы сдвинулись с места, телепортация отменена!")
                             it.cancel()

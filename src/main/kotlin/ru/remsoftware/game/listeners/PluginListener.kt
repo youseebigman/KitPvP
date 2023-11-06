@@ -7,6 +7,7 @@ import org.bukkit.event.Listener
 import org.bukkit.event.server.PluginDisableEvent
 import org.bukkit.event.server.PluginEnableEvent
 import ru.remsoftware.database.DataBaseRepository
+import ru.remsoftware.game.donate.DonateManager
 import ru.remsoftware.game.kits.KitService
 import ru.remsoftware.game.player.PlayerCombatManager
 import ru.remsoftware.game.player.PlayerService
@@ -31,6 +32,7 @@ class PluginListener(
     private val kitService: KitService,
     private val potionService: PotionService,
     private val playerCombatManager: PlayerCombatManager,
+    private val donateManager: DonateManager,
 ) : Listener {
 
 
@@ -38,6 +40,7 @@ class PluginListener(
     fun onPluginEnabled(event: PluginEnableEvent) {
         kitService.kitsLoader(database, logger)
         potionService.potionDataLoad(database, logger)
+        donateManager.loadDonate()
         GlobalTaskContext.after(10) {
             serverInfoService.serverInfo = serverInfoService.loadInfo(database, locParse)
             signService.moneySignsLoader(logger, database)

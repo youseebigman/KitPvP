@@ -13,6 +13,7 @@ import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.player.PlayerRespawnEvent
 import ru.remsoftware.database.DataBaseRepository
 import ru.remsoftware.game.inventories.InventoryManager
+import ru.remsoftware.game.kits.KitData
 import ru.remsoftware.server.ServerInfoService
 import ru.remsoftware.utils.Logger
 import ru.remsoftware.utils.parser.GameDataParser
@@ -25,6 +26,7 @@ import ru.starfarm.core.task.GlobalTaskContext
 import ru.starfarm.core.util.format.ChatUtil
 import ru.tinkoff.kora.common.Component
 import java.util.*
+import kotlin.collections.ArrayList
 
 @Component
 class PlayerService(
@@ -38,6 +40,7 @@ class PlayerService(
 ) : Listener {
 
     private val players = hashMapOf<String, KitPlayer>()
+    private val playerAvailableKits = hashMapOf<String, ArrayList<String>?>()
 
     operator fun get(name: String) = players[name]
 
@@ -48,8 +51,35 @@ class PlayerService(
     operator fun set(name: String, kitPlayer: KitPlayer) {
         players[name] = kitPlayer
     }
-
     fun all(): MutableCollection<KitPlayer> = Collections.unmodifiableCollection(players.values)
+
+    fun getAvailableKitList(name: String) = playerAvailableKits[name]
+
+    fun loadAvailableKit(name: String, kits: String) {
+        val kitList: List<String> = kits.split(":")
+        val kitArrayList = arrayListOf<String>()
+        kitList.forEach {
+            kitArrayList.add(it)
+        }
+        playerAvailableKits[name] = kitArrayList
+    }
+
+    fun addAvailableKits(name: String, kitName: String) {
+        val playerData = players[name]!!
+        val currentKits = playerAvailableKits[name]
+        if (currentKits == null) {
+            playerAvailableKits[name] = arrayListOf(kitName)
+            playerData.availableKits = kitName
+        } else {
+            currentKits.add(kitName)
+            playerAvailableKits[name] = currentKits
+            playerData.availableKits = returnAvailableKits(currentKits)
+        }
+    }
+
+    fun returnAvailableKits(kits: ArrayList<String>): String {
+        return kits.joinToString(separator = ":")
+    }
 
     init {
         GlobalTaskContext.every(600 * 20, 600 * 20) {
@@ -92,12 +122,17 @@ class PlayerService(
         val playerName = event.name
         val playerData = playerDataLoad(playerName)
         players[playerName] = playerData
+        val availableKits = playerData.availableKits
+        if (availableKits != null) {
+            loadAvailableKit(playerName, availableKits)
+        }
         logger.log("Player data loaded for $playerName")
     }
 
     fun savePlayerGameData(player: Player) {
         val name = player.name
         val kitPlayer = players[name]!!
+        val availableKits = playerAvailableKits[name]
         if (playerCombatManager.isCombatPlayer(name)) {
             kitPlayer.gameData = null
             kitPlayer.inventory = null

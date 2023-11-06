@@ -10,6 +10,8 @@ import ru.remsoftware.game.money.MoneyManager
 import ru.remsoftware.game.player.PlayerService
 import ru.remsoftware.utils.parser.InventoryParser
 import ru.starfarm.core.ApiManager
+import ru.starfarm.core.donate.IDonateService
+import ru.starfarm.core.donate.menu.DonateMenu
 import ru.starfarm.core.inventory.container.InventoryContainer
 import ru.tinkoff.kora.common.Component
 
@@ -49,7 +51,7 @@ class MainMenu(
                 "§7Нажмите, чтобы открыть донат-магазин"
             )
         }.build()
-
+        
         addItem(19, arenaItem) { _, _ ->
             ArenasMenu(kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
         }
@@ -59,7 +61,9 @@ class MainMenu(
         addItem(23, shopItem) { _, _ ->
             ShopMenu(kitManager, kitService, moneyManager, menuUtil, playerService, arenaService, inventoryParser).openInventory(player)
         }
-        addItem(25, donateItem)
+        addItem(25, donateItem) { _, _ ->
+            DonateMenu("§0Услуги режима", IDonateService.get().donates.values.filter { !it.global }).openInventory(player)
+        }
     }
 
 }

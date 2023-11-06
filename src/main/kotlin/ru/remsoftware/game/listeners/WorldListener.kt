@@ -11,7 +11,6 @@ import ru.tinkoff.kora.common.Component
 class WorldListener(
     private val arenaService: ArenaService,
 ) : Listener {
-
     @EventHandler
     fun onLoadWorld(event: WorldLoadEvent) {
         arenaService.loadArenaInfo(event.world.name)

@@ -13,6 +13,8 @@ import ru.remsoftware.game.player.PlayerService
 import ru.remsoftware.utils.parser.InventoryParser
 import ru.remsoftware.utils.parser.LocationParser
 import ru.starfarm.core.CorePlugin
+import ru.starfarm.core.donate.IDonateService
+import ru.starfarm.core.donate.menu.DonateMenu
 import ru.starfarm.core.entity.PlayerInteractFakeEntityEvent
 import ru.starfarm.core.entity.impl.FakeVillager
 import ru.starfarm.core.event.on
@@ -47,7 +49,7 @@ class NpcService(
                 customNameVisible = true
             }
             shopNpc = FakeVillager(locationParser.strToLoc("world 484.5 90 -248.5 -165 25")).apply {
-                customName = "§6§lКупить предметы"
+                customName = "§6§lМагазин"
                 customNameVisible = true
             }
             donateNpc = FakeVillager(locationParser.strToLoc("world 479.5 90 -249.5 -145 25")).apply {
@@ -66,6 +68,9 @@ class NpcService(
             }
             if (entity == shopNpc) {
                 ShopMenu(kitManager, kitService, moneyManager, menuUtil, playerService, arenaService, inventoryParser).openInventory(player)
+            }
+            if (entity == donateNpc) {
+                DonateMenu("§0Услуги режима", IDonateService.get().donates.values.filter { !it.global }).openInventory(player)
             }
         }
     }

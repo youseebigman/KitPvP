@@ -16,5 +16,5 @@ data class KitPlayer(
     var boosterTime: Int,
     var position: String?,
     var inventory: String?,
-    val availableKits: String?,
+    var availableKits: String?,
 )

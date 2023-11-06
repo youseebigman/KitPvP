@@ -18,6 +18,7 @@ import ru.starfarm.core.util.item.name
 
 
 class ConfirmBuyKitMenu(
+    private val buyForever: Boolean,
     private val donate: Boolean,
     private val item: ItemStack,
     private val kitData: KitData,
@@ -59,13 +60,24 @@ class ConfirmBuyKitMenu(
                     "§eВы уверены, что хотите купить этот кит?"
                 )
             }
+            if (buyForever) {
+                lore(
+                    "",
+                    "§eВы уверены, что хотите купить этот кит навсегда?"
+                )
+            }
             addItemFlags(*ItemFlag.values())
         }.build()
         addItem(11, confirmButton) { _, _ ->
             if (donate) {
-                kitManager.getDonateKit(player, kitData)
+                kitManager.buyKit(player, kitData)
                 player.closeInventory()
-            } else {
+            }
+            if (buyForever) {
+                kitManager.buyKitForever(player, kitData)
+                player.closeInventory()
+            }
+            if (!buyForever && !donate) {
                 kitManager.buyKit(player, kitData)
                 player.closeInventory()
             }

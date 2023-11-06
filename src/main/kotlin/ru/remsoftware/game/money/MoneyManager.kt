@@ -40,7 +40,7 @@ class MoneyManager(
                 ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&f Вы потратили &a&l$amount &fмонеты")
             }
             player.playSound(player.eyeLocation, Sound.BLOCK_NOTE_CHIME, 1.0f, 2.0f,)
-            logger.log("Игрок $playerName потратил $amount монет")
+            logger.log("Игрок $playerName потратил $amount монет. Текущий баланс: ${playerData.money}")
         }
     }
     fun removeMoneyBecauseDeath(name: String, amount: Int) {
@@ -55,7 +55,7 @@ class MoneyManager(
             val newMoney = currentMoney - amount
             playerData.money = newMoney
             playerService[name] = playerData
-            logger.log("Игрок $name потерял $amount монет за смерть")
+            logger.log("Игрок $name потерял $amount монет за смерть. Текущий баланс: ${playerData.money}")
         }
     }
     fun addMoneyWithBoost(amount: Int, player: Player) {
@@ -85,7 +85,7 @@ class MoneyManager(
                 ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&f Вы получили &a&l$bMoney &fмонеты")
             }
             player.playSound(player.eyeLocation, Sound.BLOCK_NOTE_CHIME, 1.0f, 2.0f,)
-            logger.log("Игрок $playerName получил $amount монет с бустером $booster")
+            logger.log("Игрок $playerName получил $amount монет с бустером $booster. Текущий баланс: ${playerData.money}")
         }
     }
     fun addMoney(name: String, amount: Int) {
