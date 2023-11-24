@@ -1,12 +1,12 @@
 package ru.remsoftware.game.listeners
 
 import org.bukkit.Bukkit
-import org.bukkit.World
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.server.PluginDisableEvent
 import org.bukkit.event.server.PluginEnableEvent
 import ru.remsoftware.database.DataBaseRepository
+import ru.remsoftware.game.arena.ArenaService
 import ru.remsoftware.game.donate.DonateManager
 import ru.remsoftware.game.kits.KitService
 import ru.remsoftware.game.player.PlayerCombatManager
@@ -33,27 +33,31 @@ class PluginListener(
     private val potionService: PotionService,
     private val playerCombatManager: PlayerCombatManager,
     private val donateManager: DonateManager,
+    private val arenaService: ArenaService,
 ) : Listener {
 
 
     @EventHandler
     fun onPluginEnabled(event: PluginEnableEvent) {
-        kitService.kitsLoader(database, logger)
+        kitService.kitsLoader(logger)
         potionService.potionDataLoad(database, logger)
         donateManager.loadDonate()
         GlobalTaskContext.after(10) {
-            serverInfoService.serverInfo = serverInfoService.loadInfo(database, locParse)
+            serverInfoService.loadInfo(database, locParse)
             signService.moneySignsLoader(logger, database)
+            val worlds = Bukkit.getWorlds()
+            worlds.forEach {
+                arenaService.loadArenaInfo(it.name)
+            }
             it.cancel()
         }
-
     }
 
     @EventHandler
     fun onPluginDisable(event: PluginDisableEvent) {
         playerCombatManager.combatMap.clear()
-        val serverInfo = serverInfoService.serverInfo
-        if (serverInfo!!.spawn == null) {
+        val serverInfo = serverInfoService.serverInfo!!
+        if (serverInfo.spawn == null) {
             val serverData = ServerInfoData(null, serverInfo.globalBooster)
             database.updateServerData(serverData)
         } else {
@@ -61,7 +65,6 @@ class PluginListener(
             database.updateServerData(serverData)
         }
         for (player in playerService.all()) {
-            database.updatePlayer(player)
             playerService.savePlayerGameData(Bukkit.getPlayer(player.name))
             logger.log("Saving data for ${player.name}")
         }

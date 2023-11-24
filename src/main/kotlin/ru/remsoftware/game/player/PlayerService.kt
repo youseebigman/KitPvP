@@ -1,32 +1,24 @@
 package ru.remsoftware.game.player
 
 import org.bukkit.Bukkit
-import org.bukkit.Location
-import org.bukkit.Sound
+import org.bukkit.boss.BarColor
+import org.bukkit.boss.BarStyle
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent
-import org.bukkit.event.player.PlayerKickEvent
-import org.bukkit.event.player.PlayerQuitEvent
-import org.bukkit.event.player.PlayerRespawnEvent
 import ru.remsoftware.database.DataBaseRepository
-import ru.remsoftware.game.inventories.InventoryManager
-import ru.remsoftware.game.kits.KitData
 import ru.remsoftware.server.ServerInfoService
 import ru.remsoftware.utils.Logger
 import ru.remsoftware.utils.parser.GameDataParser
 import ru.remsoftware.utils.parser.InventoryParser
 import ru.remsoftware.utils.parser.LocationParser
 import ru.remsoftware.utils.parser.PotionEffectParser
-import ru.starfarm.core.ApiManager
-import ru.starfarm.core.profile.group.DonateGroup
+import ru.starfarm.core.profile.IProfileService
 import ru.starfarm.core.task.GlobalTaskContext
-import ru.starfarm.core.util.format.ChatUtil
 import ru.tinkoff.kora.common.Component
 import java.util.*
-import kotlin.collections.ArrayList
 
 @Component
 class PlayerService(
@@ -37,10 +29,13 @@ class PlayerService(
     private val potionEffectParser: PotionEffectParser,
     private val gameDataParser: GameDataParser,
     private val playerCombatManager: PlayerCombatManager,
+    private val serverInfoService: ServerInfoService,
 ) : Listener {
 
     private val players = hashMapOf<String, KitPlayer>()
     private val playerAvailableKits = hashMapOf<String, ArrayList<String>?>()
+    private var playerKillStreak = hashMapOf<String, Int>()
+
 
     operator fun get(name: String) = players[name]
 
@@ -51,34 +46,21 @@ class PlayerService(
     operator fun set(name: String, kitPlayer: KitPlayer) {
         players[name] = kitPlayer
     }
+
     fun all(): MutableCollection<KitPlayer> = Collections.unmodifiableCollection(players.values)
 
-    fun getAvailableKitList(name: String) = playerAvailableKits[name]
-
-    fun loadAvailableKit(name: String, kits: String) {
-        val kitList: List<String> = kits.split(":")
-        val kitArrayList = arrayListOf<String>()
-        kitList.forEach {
-            kitArrayList.add(it)
-        }
-        playerAvailableKits[name] = kitArrayList
+    fun setPlayerKillStreak(name: String, kills: Int) {
+        playerKillStreak[name] = kills
     }
 
-    fun addAvailableKits(name: String, kitName: String) {
-        val playerData = players[name]!!
-        val currentKits = playerAvailableKits[name]
-        if (currentKits == null) {
-            playerAvailableKits[name] = arrayListOf(kitName)
-            playerData.availableKits = kitName
+    fun invalidatePlayerKillStreak(name: String) = playerKillStreak.remove(name)
+    fun getMaxKillStreak(): Pair<String, Int>? {
+        val max = playerKillStreak.maxWithOrNull { a, b -> a.value.compareTo(b.value) }
+        return if (max != null) {
+            Pair(max.key, max.value)
         } else {
-            currentKits.add(kitName)
-            playerAvailableKits[name] = currentKits
-            playerData.availableKits = returnAvailableKits(currentKits)
+            null
         }
-    }
-
-    fun returnAvailableKits(kits: ArrayList<String>): String {
-        return kits.joinToString(separator = ":")
     }
 
     init {
@@ -122,6 +104,7 @@ class PlayerService(
         val playerName = event.name
         val playerData = playerDataLoad(playerName)
         players[playerName] = playerData
+        setPlayerKillStreak(playerName, playerData.currentKills)
         val availableKits = playerData.availableKits
         if (availableKits != null) {
             loadAvailableKit(playerName, availableKits)
@@ -129,10 +112,60 @@ class PlayerService(
         logger.log("Player data loaded for $playerName")
     }
 
+    fun handleKillStreakBossBar() {
+        val maxKillStreak = getMaxKillStreak()
+        if (maxKillStreak != null) {
+            val max = maxKillStreak.second
+            val playerName = maxKillStreak.first
+            val bossBar = serverInfoService.killStreakBossBar.second
+            if (max >= 10) {
+                val profileName = IProfileService.get().getProfile(playerName)!!.coloredNameWithTitle
+                bossBar.title = "$profileName: §d§l$max убийств"
+                bossBar.isVisible = true
+                for (onlinePlayer in Bukkit.getOnlinePlayers()) {
+                    bossBar.addPlayer(onlinePlayer)
+                }
+                serverInfoService.killStreakBossBar = Pair(playerName, bossBar)
+            } else {
+                bossBar.isVisible = false
+            }
+        }
+    }
+
+    fun getAvailableKitList(name: String) = playerAvailableKits[name]
+
+    fun loadAvailableKit(name: String, kits: String) {
+        val kitList: List<String> = kits.split(":")
+        val kitArrayList = arrayListOf<String>()
+        kitList.forEach {
+            kitArrayList.add(it)
+        }
+        playerAvailableKits[name] = kitArrayList
+    }
+
+    fun addAvailableKits(name: String, kitName: String) {
+        val playerData = players[name]!!
+        val currentKits = playerAvailableKits[name]
+        if (currentKits == null) {
+            playerAvailableKits[name] = arrayListOf(kitName)
+            playerData.availableKits = kitName
+        } else {
+            currentKits.add(kitName)
+            playerAvailableKits[name] = currentKits
+            playerData.availableKits = returnAvailableKits(currentKits)
+        }
+    }
+
+    fun returnAvailableKits(kits: ArrayList<String>): String {
+        return kits.joinToString(separator = ":")
+    }
+
     fun savePlayerGameData(player: Player) {
         val name = player.name
         val kitPlayer = players[name]!!
-        val availableKits = playerAvailableKits[name]
+        if (kitPlayer.activeBooster) {
+            kitPlayer.localBooster -= 0.5
+        }
         if (playerCombatManager.isCombatPlayer(name)) {
             kitPlayer.gameData = null
             kitPlayer.inventory = null
@@ -169,6 +202,7 @@ class PlayerService(
             kitPlayer.availableKits
         )
     }
+
     fun getDonateGroupBooster(donateGroup: Int): Double {
         return when (donateGroup) {
             in 1..2 -> 0.05
@@ -182,4 +216,5 @@ class PlayerService(
             else -> 0.0
         }
     }
+
 }

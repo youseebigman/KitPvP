@@ -15,7 +15,8 @@ class CommandsBootstrap(
     private val plugin: CorePlugin,
     private val commands: KitpvpCommands,
     private val kitpvpTabComplete: KitpvpTabComplete,
-    private val spawnCommand: SpawnCommand,
+    private val spawnCommand: SpawnCommand
+
 ) : Lifecycle {
     override fun init(): Mono<*> {
         plugin.server.getPluginCommand("kitpvp").executor = commands

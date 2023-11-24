@@ -34,15 +34,15 @@ class PlayerJoinListener(
     fun onPlayerJoin(event: PlayerJoinEvent) {
         event.joinMessage = null
         val player = event.player
-        val kitPlayer = playerService[player]!!
-        val gameData = kitPlayer.gameData
-        val potionEffects = kitPlayer.potionEffects
-        val position = kitPlayer.position
-        val kitInv = kitPlayer.inventory
+        val playerData = playerService[player]!!
+        val gameData = playerData.gameData
+        val potionEffects = playerData.potionEffects
+        val position = playerData.position
+        val kitInv = playerData.inventory
         val playerProfile = ApiManager.getPlayerProfile(player)
         if (playerProfile != null) {
             val donateGroup = playerProfile.donateGroup.weight
-            kitPlayer.donateGroup = donateGroup
+            playerData.donateGroup = donateGroup
         }
         if (position == null) {
             playerManager.moveToSpawn(player)
@@ -72,9 +72,10 @@ class PlayerJoinListener(
                 }
             }
         }
-        if (kitPlayer.activeBooster) {
-            boosterManager.createBooster(kitPlayer.boosterTime, true, player.name)
+        if (playerData.activeBooster) {
+            boosterManager.createBooster(playerData.boosterTime, true, player.name)
         }
+        playerService.handleKillStreakBossBar()
         playerScoreboard.loadScoreboard(player)
 
     }

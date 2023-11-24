@@ -43,11 +43,12 @@ class ArenaService(
     }
 
     fun loadArenaInfo(worldName: String) {
-        val arenaInfo = ArenaInfoLoader(worldName, dataBaseRepository, logger).arenaLocations
+        val arenaInfo = ArenaInfoLoader(worldName, dataBaseRepository).arenaLocations
         val spawnPoints = arenaInfo.spawnPoints
         if (spawnPoints != null) {
             val locationList = arenaLocationParser.jsonArrayToLocationList(spawnPoints)
             arenaLocations[worldName] = locationList
+            logger.log("Spawn locations for $worldName have been loaded")
         } else {
             logger.log("Spawn locations for $worldName not found")
         }
@@ -61,7 +62,7 @@ class ArenaService(
             player.teleport(location)
             kitPlayer.arena = worldName
             playerService[player.name] = kitPlayer
-            player.playSound(player.eyeLocation, Sound.BLOCK_END_PORTAL_SPAWN, 1.0f, 1.0f)
+            player.playSound(player.eyeLocation, Sound.BLOCK_END_PORTAL_SPAWN, 100f, 1.0f)
         }
     }
 }

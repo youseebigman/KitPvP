@@ -1,6 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 
+
 buildscript {
     repositories {
         maven {
@@ -35,7 +36,8 @@ kotlin {
 
 repositories {
     mavenCentral()
-
+    mavenLocal()
+    maven("https://jitpack.io")
     maven("https://papermc.io/repo/repository/maven-public/")
     maven {
         url = uri("https://repo.starfarm.fun/private")
@@ -50,9 +52,12 @@ val koraVersion = "0.12.0"
 
 repositories.addAll(buildscript.repositories)
 dependencies {
-    compileOnly("org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT")
-    compileOnly("com.destroystokyo.paper", "paper-api", "1.12.2-R0.1-SNAPSHOT")
+    compileOnly("org.spigotmc:spigot:1.12.2-R0.1-SNAPSHOT")
+    compileOnly("com.destroystokyo.paper:paper-api:1.12.2-R0.1-SNAPSHOT")
     compileOnly("ru.starfarm:core:1.3.80")
+
+    implementation("com.github.youseebiggirl:BoardAPI:-SNAPSHOT")
+
     implementation("mysql:mysql-connector-java:8.0.28")
 
     val kora = platform("ru.tinkoff.kora:kora-parent:$koraVersion")
@@ -66,6 +71,10 @@ dependencies {
 
     compileOnly(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 }
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor(0, "seconds")
+}
+
 tasks {
     jar {
         archiveFileName.set("KitPvP.jar")

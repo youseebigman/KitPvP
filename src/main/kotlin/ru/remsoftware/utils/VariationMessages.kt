@@ -4,6 +4,28 @@ import org.bukkit.entity.Player
 import ru.starfarm.core.util.format.ChatUtil
 
 object VariationMessages {
+
+    fun returnMoneyVariants(money: Int): String {
+        return if (money in 11..19) {
+            "монет"
+        } else {
+            val remainder = money % 10
+            if (remainder == 0 || remainder > 4) "монет"
+            else if (remainder == 1) "монета"
+            else "монеты"
+        }
+    }
+    fun returnKillsVariants(kills: Int): String {
+        return if (kills in 11..19) {
+            "убийств"
+        } else {
+            val remainder = kills % 10
+            if (remainder == 0 || remainder > 4) "убийств"
+            else if (remainder == 1) "убийство"
+            else "убийства"
+        }
+    }
+
     fun sendMessageWithVariants(divisible: Int, player: Player?, reason: String, victim: Player?, killer: Player?) {
         if (reason.equals("death")) {
             if (divisible in 11..19) {

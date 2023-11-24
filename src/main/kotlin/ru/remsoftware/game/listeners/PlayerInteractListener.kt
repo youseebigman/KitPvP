@@ -62,7 +62,7 @@ class PlayerInteractListener(
                                 }
                                 CooldownUtil.put(itemName, player, customPotion!!.cooldown)
                                 if (slot != null) {
-                                    GlobalTaskContext.asyncAfter(10) {
+                                    GlobalTaskContext.asyncAfter(5) {
                                         player.inventory.setItem(slot, newItem)
                                         it.cancel()
                                     }

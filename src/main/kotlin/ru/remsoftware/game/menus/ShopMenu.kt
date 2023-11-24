@@ -28,7 +28,7 @@ class ShopMenu(
 ) : InventoryContainer("Магазин", 6) {
     override fun drawInventory(player: Player) {
         val armorShopItem = ApiManager.newItemBuilder(Material.IRON_HELMET).apply {
-            name = "§fМагазин доспехов, оружия и еды"
+            name = "§fМагазин доспехов и еды"
             lore(
                 "",
                 "§7Нажмите, чтобы открыть магазин"
@@ -147,14 +147,6 @@ class ArmorShop(
     override fun drawInventory(player: Player) {
         val ironArmorPrice: Int = 500
         val ironSwordPrice: Int = 1000
-        val sword = ApiManager.newItemBuilder(Material.IRON_SWORD).apply {
-            lore(
-                "",
-                "&fЦена: &a$$ironSwordPrice",
-                "§7Нажмите, чтобы купить железный меч"
-            )
-            addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
-        }.build()
         val helmet = ApiManager.newItemBuilder(Material.IRON_HELMET).apply {
             lore(
                 "",
@@ -195,13 +187,6 @@ class ArmorShop(
             )
         }.build()
 
-        addItem(20, sword) { _, _ ->
-            val check = menuUtil.checkPlayerInventoryForBuy(player, playerService)
-            if (check) {
-                moneyManager.removeMoneyBecauseBuy(player, ironArmorPrice)
-                player.inventory.addItem(ItemStack(Material.IRON_SWORD))
-            }
-        }
         addItem(21, helmet) { _, _ ->
             val check = menuUtil.checkPlayerInventoryForBuy(player, playerService)
             if (check) {
@@ -230,7 +215,7 @@ class ArmorShop(
                 player.inventory.addItem(ItemStack(Material.IRON_BOOTS))
             }
         }
-        addItem(31, food) { _, _ ->
+        addItem(20, food) { _, _ ->
             val check = menuUtil.checkPlayerInventoryForBuy(player, playerService)
             if (check) {
                 moneyManager.removeMoneyBecauseBuy(player, 160)
@@ -288,40 +273,40 @@ class EnchantMenu(
 
         if (item.type.name.endsWith("HELMET") || item.type.name.endsWith("CHESTPLATE") || item.type.name.endsWith("LEGGINGS") || item.type.name.endsWith("BOOTS")) {
             if (item.type.name.startsWith("LEATHER")) {
-                val leatherProtectionPrices = listOf(50, 150, 300, 600)
-                for (i in 1..4) {
+                val leatherProtectionPrices = listOf(50, 150, 250, 400, 600)
+                for (i in 1..5) {
                     createEnchantsItems(item, player, leatherProtectionPrices, i - 1, 1, Enchantment.PROTECTION_ENVIRONMENTAL)
                 }
                 for (i in 1..3) {
                     createEnchantsItems(item, player, durabilityPrice, i - 1, 2, Enchantment.DURABILITY)
                 }
             } else if (item.type.name.startsWith("CHAINMAIL")) {
-                val chainProtectionPrices = listOf(100, 300, 600, 1000)
-                for (i in 1..4) {
+                val chainProtectionPrices = listOf(100, 300, 600, 900, 1200)
+                for (i in 1..5) {
                     createEnchantsItems(item, player, chainProtectionPrices, i - 1, 1, Enchantment.PROTECTION_ENVIRONMENTAL)
                 }
                 for (i in 1..3) {
                     createEnchantsItems(item, player, durabilityPrice, i - 1, 2, Enchantment.DURABILITY)
                 }
             } else if (item.type.name.startsWith("GOLD")) {
-                val goldProtectionPrices = listOf(50, 200, 400, 700)
-                for (i in 1..4) {
+                val goldProtectionPrices = listOf(50, 200, 400, 700, 950)
+                for (i in 1..5) {
                     createEnchantsItems(item, player, goldProtectionPrices, i - 1, 1, Enchantment.PROTECTION_ENVIRONMENTAL)
                 }
                 for (i in 1..3) {
                     createEnchantsItems(item, player, durabilityPrice, i - 1, 2, Enchantment.DURABILITY)
                 }
             } else if (item.type.name.startsWith("IRON")) {
-                val ironProtectionPrices = listOf(250, 600, 1000, 1500)
-                for (i in 1..4) {
+                val ironProtectionPrices = listOf(250, 600, 1000, 1500, 2000)
+                for (i in 1..5) {
                     createEnchantsItems(item, player, ironProtectionPrices, i - 1, 1, Enchantment.PROTECTION_ENVIRONMENTAL)
                 }
                 for (i in 1..3) {
                     createEnchantsItems(item, player, durabilityPrice, i - 1, 2, Enchantment.DURABILITY)
                 }
             } else if (item.type.name.startsWith("DIAMOND")) {
-                val diamondProtectionPrices = listOf(300, 900, 1500, 2000)
-                for (i in 1..4) {
+                val diamondProtectionPrices = listOf(300, 900, 1500, 2000, 2700)
+                for (i in 1..5) {
                     createEnchantsItems(item, player, diamondProtectionPrices, i - 1, 1, Enchantment.PROTECTION_ENVIRONMENTAL)
                 }
                 for (i in 1..3) {
@@ -368,7 +353,7 @@ class EnchantMenu(
                 createEnchantsItems(item, player, bowPowerPrice, i - 1, 1, Enchantment.ARROW_DAMAGE)
             }
             for (i in 1..3) {
-                createEnchantsItems(item, player, durabilityPrice, i - 1, 1, Enchantment.DURABILITY)
+                createEnchantsItems(item, player, durabilityPrice, i - 1, 2, Enchantment.DURABILITY)
             }
         }
 
@@ -398,7 +383,6 @@ class EnchantMenu(
             enchant(enchantment, counter + 1)
         }.build()
         val newItem = ApiManager.newItemBuilder(item).apply {
-            lore()
             enchant(enchantment, counter + 1)
         }.build()
         addItem(slot, enchantItem) { _, _ ->

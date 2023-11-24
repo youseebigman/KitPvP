@@ -5,6 +5,7 @@ import org.bukkit.Sound
 import org.bukkit.entity.Player
 import ru.remsoftware.database.DataBaseRepository
 import ru.remsoftware.game.player.PlayerService
+import ru.remsoftware.utils.PlayersUtil
 import ru.starfarm.core.task.GlobalTaskContext
 import ru.starfarm.core.util.format.ChatUtil
 import ru.tinkoff.kora.common.Component
@@ -44,7 +45,7 @@ class BoosterManager(
         kitPlayer.boosterTime = 0
         playerService[playerName] = kitPlayer
         dataBase.updatePlayer(kitPlayer)
-        ChatUtil.sendMessage(player, "&&8[&b&lKit&4&lPvP&8]&c&l Время вашего бустера вышло!")
+        ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c&l Время вашего бустера вышло!")
         player.playSound(player.eyeLocation, Sound.BLOCK_LAVA_EXTINGUISH, 1f, 1f)
     }
 
@@ -55,9 +56,7 @@ class BoosterManager(
         GlobalTaskContext.everyAsync(1, 20) {
             val boosterRemainingTime = booster.remainingTime
             booster.remainingTime -= 1
-            if (!Bukkit.getServer().onlinePlayers.contains(player)) {
-                kitPlayer.localBooster -= 0.5
-                dataBase.updatePlayer(kitPlayer)
+            if (Bukkit.getPlayer(playerName) == null) {
                 it.cancel()
             } else {
                 kitPlayer.boosterTime = booster.remainingTime

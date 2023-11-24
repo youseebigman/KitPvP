@@ -7,7 +7,9 @@ import java.util.*
 import kotlin.collections.HashMap
 
 @Component
-class KitService {
+class KitService(
+    private val database: DataBaseRepository,
+) {
     private val cacheKitMap = hashMapOf<String, KitData>()
 
     val freeKits = hashMapOf<String, KitData>()
@@ -26,27 +28,30 @@ class KitService {
 
     fun all(): MutableCollection<KitData> = Collections.unmodifiableCollection(cacheKitMap.values)
 
-    fun kitsLoader(database: DataBaseRepository, logger: Logger) {
+    fun kitsLoader(logger: Logger) {
         val kitsLoader = KitDataLoader(database, logger)
         val kitList = kitsLoader.kits
         for (kit in kitList) {
-            val kitData = KitData(kit.name, kit.icon, kit.inventory, kit.potionEffects, kit.price,  kit.donateGroup)
+            val kitData = KitData(kit.name, kit.icon, kit.inventory, kit.potionEffects, kit.price,  kit.donateGroup, kit.numberOfPurchases)
             cacheKitMap[kit.name] = kitData
             sortKits(kitData)
         }
     }
 
-    fun createKit(kitData: KitData, database: DataBaseRepository) {
+    fun createKit(kitData: KitData) {
         database.createKit(kitData)
         set(kitData.name, kitData)
         sortKits(kitData)
 
     }
 
-    fun updateKit(kitData: KitData, database: DataBaseRepository) {
-        database.updateKitData(kitData)
+    fun updateKit(kitData: KitData) {
         set(kitData.name, kitData)
         sortKits(kitData)
+        database.updateKitData(kitData)
+    }
+    fun updateKitPurchases(name: String, amount: Int) {
+        database.updateKitPurchases(name, amount)
     }
 
     fun sortKits(kitData: KitData) {
@@ -54,10 +59,10 @@ class KitService {
             0 -> {
                 freeKits[kitData.name] = kitData
             }
-            in 1..5000 -> {
+            in 1..4999 -> {
                 cheapKitsMap[kitData.name] = kitData
             }
-            in 5001..50000 -> {
+            in 5000..50000 -> {
                 if (kitData.donateGroup != null) {
                     donateKitsMap[kitData.name] = kitData
                 } else {

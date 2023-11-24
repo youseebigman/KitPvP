@@ -1,9 +1,7 @@
 package ru.remsoftware.game.kits
 
-import org.bukkit.Material
 import org.bukkit.Sound
 import org.bukkit.entity.Player
-import org.bukkit.inventory.ItemStack
 import org.bukkit.potion.PotionEffectType
 import ru.remsoftware.database.DataBaseRepository
 import ru.remsoftware.game.money.MoneyManager
@@ -11,12 +9,13 @@ import ru.remsoftware.game.player.PlayerService
 import ru.remsoftware.utils.Logger
 import ru.remsoftware.utils.parser.InventoryParser
 import ru.remsoftware.utils.parser.PotionEffectParser
+import ru.starfarm.core.tab.ITabService
+import ru.starfarm.core.tab.TabService
+import ru.starfarm.core.tab.TabViewBuilder
 import ru.starfarm.core.util.format.ChatUtil
 import ru.starfarm.core.util.number.NumberUtil
 import ru.starfarm.core.util.time.CooldownUtil
-import ru.starfarm.core.util.time.Time
 import ru.tinkoff.kora.common.Component
-import java.util.concurrent.TimeUnit
 
 @Component
 class KitManager(
@@ -26,7 +25,8 @@ class KitManager(
     private val potionEffectParser: PotionEffectParser,
     private val moneyManager: MoneyManager,
     private val logger: Logger,
-) {
+
+    ) {
 
     fun getPlayerAvailableKits(name: String): ArrayList<KitData>? {
         val availableKitList = playerService.getAvailableKitList(name)
@@ -107,14 +107,16 @@ class KitManager(
 
     fun setKit(player: Player, data: KitData) {
         val kitPlayer = playerService.get(player)
+        val kitName = data.name
         if (kitPlayer != null) {
-            if (kitPlayer.kit.equals(data.name)) {
+            if (kitPlayer.kit.equals(kitName)) {
                 ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Вы уже выбрали себе такой кит!")
                 player.closeInventory()
             } else {
-                kitPlayer.kit = data.name
-                kitPlayer.inventory = data.inventory
-                val kitInventory = inventoryParser.jsonToInventory(data.inventory)
+                val kitInventoryJson = data.inventory
+                kitPlayer.kit = kitName
+                kitPlayer.inventory = kitInventoryJson
+                val kitInventory = inventoryParser.jsonToInventory(kitInventoryJson)
                 val kitPotionEffect = potionEffectParser.jsonToPotionEffect(data.potionEffects)
                 if (player.activePotionEffects != null) {
                     val pEffects = player.activePotionEffects
@@ -136,6 +138,9 @@ class KitManager(
                 for (potionEffect in kitPotionEffect) {
                     player.addPotionEffect(potionEffect)
                 }
+                data.numberOfPurchases++
+                kitService[kitName] = data
+                kitService.updateKitPurchases(kitName, data.numberOfPurchases)
             }
         }
     }
@@ -148,17 +153,22 @@ class KitManager(
             player.inventory.clear(40)
             val kitInventory = inventoryParser.inventoryToJson(player.inventory)
             val kitPotionEffect = potionEffectParser.effectsToJson(player)
-            val kitData = KitData(name, icon, kitInventory, kitPotionEffect, price, null)
-            kitService.createKit(kitData, database)
+            val kitData = KitData(name, icon, kitInventory, kitPotionEffect, price, null, 0)
+            kitService.createKit(kitData)
         }
     }
 
     fun updateKit(database: DataBaseRepository, player: Player, name: String, price: Int) {
-        val icon = inventoryParser.itemToJson(player.inventory.itemInOffHand).toString()
-        player.inventory.clear(40)
-        val kitInventory = inventoryParser.inventoryToJson(player.inventory)
-        val kitPotionEffect = potionEffectParser.effectsToJson(player)
-        val kitData = KitData(name, icon, kitInventory, kitPotionEffect, price, null)
-        kitService.updateKit(kitData, database)
+        val kitData = kitService[name]
+        if (kitData == null) {
+            ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Кита с таким названием не существует")
+        } else {
+            val icon = inventoryParser.itemToJson(player.inventory.itemInOffHand).toString()
+            player.inventory.clear(40)
+            val kitInventory = inventoryParser.inventoryToJson(player.inventory)
+            val kitPotionEffect = potionEffectParser.effectsToJson(player)
+            val newKitData = KitData(name, icon, kitInventory, kitPotionEffect, price, null, kitData.numberOfPurchases)
+            kitService.updateKit(newKitData)
+        }
     }
 }

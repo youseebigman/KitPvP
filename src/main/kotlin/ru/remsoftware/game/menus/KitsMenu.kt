@@ -1,6 +1,5 @@
 package ru.remsoftware.game.menus
 
-import net.md_5.bungee.api.chat.ClickEvent.Action
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemFlag
@@ -63,7 +62,7 @@ class KitsMenu(
                 "",
                 "&2Обычные игроки могут купить кит за деньги",
                 "",
-                "&cВыбрать кит бесплатно можно будет через 3 дня после запуска игры!"
+                "&cВыбрать кит бесплатно можно будет через 3 дня после запуска сервера!"
             )
             addItemFlags(*ItemFlag.values())
         }.build()
@@ -259,12 +258,13 @@ class DonateKitsMenu(
 
     val eliteKitSlots = arrayOf(10, 19, 28, 36)
     val sponsorKitSlots = arrayOf(13, 22, 31, 39)
-    val uniqueKitSlots = arrayOf(16, 25, 33, 38)
+    val uniqueKitSlots = arrayOf(16, 25, 34, 38)
     val donateKits = Collections.unmodifiableCollection(kitService.donateKitsMap.values)
     override fun drawInventory(player: Player) {
         var eliteIndex = 0
         var sponsorIndex = 0
         var uniqueIndex = 0
+
         donateKits.forEach {
             if (it.donateGroup == 5) {
                 val item = ApiManager.newItemBuilder(inventoryParser.jsonToItem(it.icon)).apply {
@@ -284,15 +284,20 @@ class DonateKitsMenu(
                     if (kitPlayer.donateGroup >= 5) {
                         if (inventoryClickListener.isRightClick) {
                             ConfirmBuyKitMenu(true, false, item, it, kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
+                        } else {
+                            ConfirmBuyKitMenu(false, true, item, it, kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
                         }
-                        ConfirmBuyKitMenu(false, true, item, it, kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
                     } else {
-                        ConfirmBuyKitMenu(false, false, item, it, kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
+                        if (inventoryClickListener.isRightClick) {
+                            ConfirmBuyKitMenu(true, false, item, it, kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
+                        } else {
+                            ConfirmBuyKitMenu(false, false, item, it, kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
+                        }
                     }
                 }
                 eliteIndex++
             }
-            if (it.donateGroup == 7) {
+            else if (it.donateGroup == 7) {
                 val item = ApiManager.newItemBuilder(inventoryParser.jsonToItem(it.icon)).apply {
                     name = "§6${it.name}"
                     lore(
@@ -310,15 +315,20 @@ class DonateKitsMenu(
                     if (kitPlayer.donateGroup >= 7) {
                         if (inventoryClickListener.isRightClick) {
                             ConfirmBuyKitMenu(true, false, item, it, kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
+                        } else {
+                            ConfirmBuyKitMenu(false, true, item, it, kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
                         }
-                        ConfirmBuyKitMenu(false, true, item, it, kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
                     } else {
-                        ConfirmBuyKitMenu(false, false, item, it, kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
+                        if (inventoryClickListener.isRightClick) {
+                            ConfirmBuyKitMenu(true, false, item, it, kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
+                        } else {
+                            ConfirmBuyKitMenu(false, false, item, it, kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
+                        }
                     }
                 }
                 sponsorIndex++
             }
-            if (it.donateGroup == 9) {
+            else if (it.donateGroup == 9) {
                 val item = ApiManager.newItemBuilder(inventoryParser.jsonToItem(it.icon)).apply {
                     name = "§3${it.name}"
                     lore(
@@ -336,10 +346,15 @@ class DonateKitsMenu(
                     if (kitPlayer.donateGroup >= 9) {
                         if (inventoryClickListener.isRightClick) {
                             ConfirmBuyKitMenu(true, false, item, it, kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
+                        } else {
+                            ConfirmBuyKitMenu(false, true, item, it, kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
                         }
-                        ConfirmBuyKitMenu(false, true, item, it, kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
                     } else {
-                        ConfirmBuyKitMenu(false, false, item, it, kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
+                        if (inventoryClickListener.isRightClick) {
+                            ConfirmBuyKitMenu(true, false, item, it, kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
+                        } else {
+                            ConfirmBuyKitMenu(false, false, item, it, kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
+                        }
                     }
                 }
                 uniqueIndex++

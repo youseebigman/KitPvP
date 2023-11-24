@@ -14,6 +14,7 @@ import ru.tinkoff.kora.common.Component
 class KitpvpTabComplete : TabCompleter {
     private val enchantmentList = arrayListOf<String>()
     private val soundList = arrayListOf<String>()
+
     init {
         Sound.values().forEach {
             soundList.add(it.toString())

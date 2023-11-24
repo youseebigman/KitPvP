@@ -7,6 +7,7 @@ import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.event.block.BlockPlaceEvent
 import org.bukkit.event.entity.CreatureSpawnEvent
 import org.bukkit.event.player.PlayerDropItemEvent
+import org.bukkit.event.weather.WeatherChangeEvent
 import ru.remsoftware.game.signs.SignService
 import ru.tinkoff.kora.common.Component
 
@@ -45,5 +46,9 @@ class GlobalCanceller(
         if (!event.player.isOp) {
             event.isCancelled = true
         }
+    }
+    @EventHandler
+    fun onWeatherChange(event: WeatherChangeEvent) {
+        event.isCancelled = event.toWeatherState()
     }
 }

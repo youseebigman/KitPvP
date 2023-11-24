@@ -4,9 +4,7 @@ import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.command.TabExecutor
 import org.bukkit.entity.Player
-import ru.remsoftware.game.money.MoneyManager
 import ru.remsoftware.game.player.PlayerManager
-import ru.remsoftware.game.player.PlayerService
 import ru.tinkoff.kora.common.Component
 
 @Component

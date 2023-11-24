@@ -112,7 +112,7 @@ class DonateManager(
             .price(999)
             .register()
         ApiManager.newDonateBuilder(ChatUtil.color("&a&lСлучайный дешёвый кит навсегда"))
-            .slot(28)
+            .slot(29)
             .icon(ItemStack(Material.CHAINMAIL_CHESTPLATE))
             .description(
                 "",
@@ -138,10 +138,10 @@ class DonateManager(
                 ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&2&l Поздравляем! Вы получили кит $randomKit")
                 logger.log("Игрок $name купил донат Случайный дешёвый кит навсегда")
             }
-            .price(99)
+            .price(49)
             .register()
         ApiManager.newDonateBuilder(ChatUtil.color("&a&lСлучайный недорогой кит навсегда"))
-            .slot(30)
+            .slot(33)
             .icon(ItemStack(Material.IRON_CHESTPLATE))
             .description(
                 "",
@@ -167,7 +167,7 @@ class DonateManager(
                 ChatUtil.sendMessage(player,"&8[&b&lKit&4&lPvP&8]&2&l Поздравляем! Вы получили кит &b$randomKit")
                 logger.log("Игрок $name купил донат Случайный дешёвый кит навсегда")
             }
-            .price(399)
+            .price(299)
             .register()
     }
 }

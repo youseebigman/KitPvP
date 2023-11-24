@@ -14,6 +14,8 @@ import ru.tinkoff.kora.database.jdbc.JdbcRepository
 @Repository
 interface DataBaseRepository : JdbcRepository {
     // Query for players data
+    @Query("select * from kitpvp.kit_players")
+    fun loadAllPlayerData(): List<KitPlayer>
     @Query("select name, game_data, kit, money, donate_group, arena, kills, current_kills, deaths, local_booster, active_booster, booster_time, position, inventory, potion_effects, available_kits FROM kitpvp.kit_players where name = :name")
     fun loadPlayerData(name: String): KitPlayer?
 
@@ -30,12 +32,13 @@ interface DataBaseRepository : JdbcRepository {
     @Query("insert into kitpvp.kits_data (name, inventory, potion_effects, icon, price) values (:data.name, :data.inventory, :data.potionEffects, :data.icon, :data.price)")
     fun createKit(data: KitData)
 
-    @Query("select name, inventory, potion_effects, icon, price, donate_group from kitpvp.kits_data")
+    @Query("select * from kitpvp.kits_data")
     fun loadKitData(): List<KitData>?
 
-    @Query("update kitpvp.kits_data set name = :data.name, inventory = :data.inventory, potion_effects = :data.potionEffects, icon = :data.icon, price = :data.price where name = :data.name")
+    @Query("update kitpvp.kits_data set name = :data.name, inventory = :data.inventory, potion_effects = :data.potionEffects, icon = :data.icon, price = :data.price, number_of_purchases = :data.numberOfPurchases where name = :data.name")
     fun updateKitData(data: KitData)
-
+    @Query("update kitpvp.kits_data set number_of_purchases = :amount where name = :name")
+    fun updateKitPurchases(name: String, amount: Int)
     @Query("delete from kitpvp.kits_data where name = :name")
     fun removeKitData(name: String)
 

@@ -5,6 +5,7 @@ import ru.starfarm.core.ApiManager
 import ru.starfarm.core.util.format.ChatUtil
 import ru.starfarm.core.util.number.NumberUtil
 import ru.tinkoff.kora.common.Component
+import java.text.DecimalFormat
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -14,7 +15,7 @@ class PlayerScoreboard(
     private val playerService: PlayerService,
 ) {
     fun loadScoreboard(player: Player) {
-
+        val dec = DecimalFormat("#,###,###")
         val kitPlayer = playerService[player]!!
 
         ApiManager.newScoreboardBuilder().apply {
@@ -22,14 +23,14 @@ class PlayerScoreboard(
             setLine(11, ChatUtil.color("&3&l      ${LocalDateTime.now(ZoneId.of("Europe/Moscow")).format(DateTimeFormatter.ofPattern("d.MM.yyyy HH:mm"))}"))
             setLine(10, "")
             setLine(9, ChatUtil.color("&a&lИнформация"))
-            setLine(8, ChatUtil.color("  &fМонеты: &b${kitPlayer.money}"))
+            setLine(8, ChatUtil.color("  &fБаланс: &a$${dec.format(kitPlayer.money)}"))
             setLine(7, ChatUtil.color("  &fУбийств: &b${kitPlayer.kills}"))
             setLine(6, ChatUtil.color("  &fСмертей: &b${kitPlayer.deaths}"))
             setLine(5, ChatUtil.color("  &fТекущие убийства: &b${kitPlayer.currentKills}"))
             if (kitPlayer.deaths == 0) {
-                setLine(4, ChatUtil.color("  &fK/D: &b${kitPlayer.kills.toDouble() / 1}"))
+                setLine(4, ChatUtil.color("  &fK/D: &c${kitPlayer.kills.toDouble() / 1}"))
             } else {
-                setLine(4, ChatUtil.color("  &fK/D: &b${kitPlayer.kills.toDouble() / kitPlayer.deaths}"))
+                setLine(4, ChatUtil.color("  &fK/D: &c${kitPlayer.kills.toDouble() / kitPlayer.deaths}"))
             }
             if (kitPlayer.activeBooster) {
                 setLine(3, ChatUtil.color("  &fБустер: &a${NumberUtil.getTime(kitPlayer.boosterTime)}"))
@@ -53,11 +54,11 @@ class PlayerScoreboard(
                 } else {
                     kitPlayer.kills.toDouble() / kitPlayer.deaths.toDouble()
                 }
-                scoreboard.setLine(8, ChatUtil.color("  &fМонеты: &b${kitPlayer.money}"))
-                scoreboard.setLine(7, ChatUtil.color("  &fУбийств: &b${kitPlayer.kills}"))
-                scoreboard.setLine(6, ChatUtil.color("  &fСмертей: &b${kitPlayer.deaths}"))
-                scoreboard.setLine(5, ChatUtil.color("  &fТекущие убийства: &b${kitPlayer.currentKills}"))
-                scoreboard.setLine(4, ChatUtil.color("  &fK/D: &b${"%.2f".format(kd)}"))
+                scoreboard.setLine(8, ChatUtil.color("  &fБаланс: &a$${dec.format(kitPlayer.money)}"))
+                scoreboard.setLine(7, ChatUtil.color("  &fУбийств: &c${kitPlayer.kills}"))
+                scoreboard.setLine(6, ChatUtil.color("  &fСмертей: &c${kitPlayer.deaths}"))
+                scoreboard.setLine(5, ChatUtil.color("  &fТекущие убийства: &c${kitPlayer.currentKills}"))
+                scoreboard.setLine(4, ChatUtil.color("  &fK/D: &e${"%.2f".format(kd)}"))
             }
         }.build(player)
     }

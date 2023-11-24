@@ -29,6 +29,7 @@ class MoneyManager(
             val newMoney = currentMoney - amount
             playerData.money = newMoney
             playerService[playerName] = playerData
+            database.updateMoney(playerName, newMoney)
             val remainder = amount % 10
             if (remainder == 0 || remainder > 4) {
                 ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&f Вы потратили &a&l$amount &fмонет")
@@ -55,6 +56,7 @@ class MoneyManager(
             val newMoney = currentMoney - amount
             playerData.money = newMoney
             playerService[name] = playerData
+            database.updateMoney(name, newMoney)
             logger.log("Игрок $name потерял $amount монет за смерть. Текущий баланс: ${playerData.money}")
         }
     }
@@ -74,6 +76,7 @@ class MoneyManager(
             val newMoney = currentMoney + bMoney
             playerData.money = newMoney
             playerService[playerName] = playerData
+            database.updateMoney(playerName, newMoney)
             val remainder = bMoney % 10
             if (remainder == 0 || remainder > 4) {
                 ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&f Вы получили &a&l$bMoney &fмонет")
@@ -95,25 +98,26 @@ class MoneyManager(
             val currentMoney = offlinePlayerData.money
             val newMoney = currentMoney + amount
             database.updateMoney(name, newMoney)
+            logger.log("Игрок $name получил $amount монет. Текущий баланс: $newMoney")
         } else {
             val currentMoney = playerData.money
             val newMoney = currentMoney + amount
             playerData.money = newMoney
             playerService[name] = playerData
+            database.updateMoney(name, newMoney)
+            logger.log("Игрок $name получил $amount монет. Текущий баланс: $newMoney")
         }
     }
 
     fun handleMoneyOnKill(victimMoney: Int): Int {
-        var returnMoney = 0
-        if (victimMoney < 20) {
-            returnMoney = victimMoney + 20
+        return if (victimMoney < 20) {
+            victimMoney + 20
         } else if (victimMoney in 20..50000) {
-            returnMoney = victimMoney / 10 + 20
-        } else if (victimMoney > 50000) {
-            returnMoney = victimMoney / 20
+            victimMoney / 10 + 20
+        } else {
+            victimMoney / 20
         }
 
-        return returnMoney
     }
     fun boostMoney(amount: Int, booster: Double) : Int {
         val boostMoney = amount * booster

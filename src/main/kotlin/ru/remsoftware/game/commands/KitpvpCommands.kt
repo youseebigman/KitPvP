@@ -18,7 +18,9 @@ import ru.remsoftware.game.menus.MenuUtil
 import ru.remsoftware.game.menus.PotionMenu
 import ru.remsoftware.game.money.MoneyManager
 import ru.remsoftware.game.money.boosters.BoosterManager
+import ru.remsoftware.game.player.PlayerManager
 import ru.remsoftware.game.player.PlayerService
+import ru.remsoftware.game.player.PlayerTopBoards
 import ru.remsoftware.game.potions.PotionManager
 import ru.remsoftware.game.potions.PotionService
 import ru.remsoftware.game.signs.SignService
@@ -50,6 +52,8 @@ class KitpvpCommands(
     private val potionEffectParser: PotionEffectParser,
     private val moneyManager: MoneyManager,
     private val arenaService: ArenaService,
+    private val playerTopBoards: PlayerTopBoards,
+    private val playerManager: PlayerManager,
 ) : CommandExecutor {
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
@@ -72,6 +76,9 @@ class KitpvpCommands(
                                 arenaService.addSpawnPoint(player.world.name, player.location)
                             }
                         }
+                    }
+                    if (args[0].equals("board", ignoreCase = true)) {
+                        playerTopBoards.createBoard(player)
                     }
                     if (args[0].equals("enchant", ignoreCase = true)) {
                         if (args.size == 2) {
@@ -323,7 +330,7 @@ class KitpvpCommands(
                         if (args.size == 2) {
                             if (args[1].equals("setspawn", ignoreCase = true)) {
                                 val loc = player.location
-                                serverInfoService.serverInfo!!.spawn = loc
+                                serverInfoService.spawn = loc
                                 database.updateSpawn(locationParser.locToStr(loc))
                             } else {
                                 ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&e /k server setspawn - установить спавн \n &8[&b&lKit&4&lPvP&8]&e /k server kit [get|create|update] Название (Цена) - работа с китами")
@@ -365,10 +372,10 @@ class KitpvpCommands(
                     }
                 }
             } else {
-                if (args[0].equals("menu", ignoreCase = true)) {
-                    MainMenu(kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
-                } else {
-                    ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c&l У вас нету прав на использование данной команды")
+                if (args.size == 1) {
+                    if (args[0].equals("menu", ignoreCase = true)) {
+                        MainMenu(kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
+                    }
                 }
             }
         } else {
