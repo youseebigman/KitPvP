@@ -9,7 +9,7 @@ import ru.remsoftware.game.kits.KitData
 import ru.remsoftware.game.kits.KitManager
 import ru.remsoftware.game.kits.KitService
 import ru.remsoftware.game.money.MoneyManager
-import ru.remsoftware.game.player.KitPlayer
+import ru.remsoftware.game.player.PlayerManager
 import ru.remsoftware.game.player.PlayerService
 import ru.remsoftware.utils.parser.InventoryParser
 import ru.starfarm.core.ApiManager
@@ -29,6 +29,7 @@ class ConfirmBuyKitMenu(
     private val playerService: PlayerService,
     private val arenaService: ArenaService,
     private val inventoryParser: InventoryParser,
+    private val playerManager: PlayerManager,
 ) : InventoryContainer("Меню подтверждения", 3) {
     override fun drawInventory(player: Player) {
         val confirmButton = ApiManager.newItemBuilder(Material.EMERALD_BLOCK).apply {
@@ -47,7 +48,7 @@ class ConfirmBuyKitMenu(
             )
             addItemFlags(*ItemFlag.values())
         }.build()
-        val infoItem = ApiManager.newItemBuilder(item.type).apply {
+        val infoItem = ApiManager.newItemBuilder(inventoryParser.jsonToItem(kitData.icon)).apply {
             name = "${item.name}"
             if (donate) {
                 lore(
@@ -72,19 +73,17 @@ class ConfirmBuyKitMenu(
             if (donate) {
                 kitManager.buyKit(player, kitData)
                 player.closeInventory()
-            }
-            if (buyForever) {
+            } else if (buyForever) {
                 kitManager.buyKitForever(player, kitData)
                 player.closeInventory()
-            }
-            if (!buyForever && !donate) {
+            } else  {
                 kitManager.buyKit(player, kitData)
                 player.closeInventory()
             }
         }
         addItem(13, infoItem)
         addItem(15, declinedButton) { _, _ ->
-            KitsMenu(kitService, kitManager, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
+            KitsMenu(kitService, kitManager, menuUtil, moneyManager, playerService, arenaService, inventoryParser, playerManager).openInventory(player)
         }
     }
 }

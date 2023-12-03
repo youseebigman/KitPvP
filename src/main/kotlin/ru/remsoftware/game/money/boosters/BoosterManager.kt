@@ -5,7 +5,6 @@ import org.bukkit.Sound
 import org.bukkit.entity.Player
 import ru.remsoftware.database.DataBaseRepository
 import ru.remsoftware.game.player.PlayerService
-import ru.remsoftware.utils.PlayersUtil
 import ru.starfarm.core.task.GlobalTaskContext
 import ru.starfarm.core.util.format.ChatUtil
 import ru.tinkoff.kora.common.Component

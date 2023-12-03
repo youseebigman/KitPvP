@@ -3,8 +3,6 @@ package ru.remsoftware.game.money
 import org.bukkit.Sound
 import org.bukkit.entity.Player
 import ru.remsoftware.database.DataBaseRepository
-import ru.remsoftware.game.player.KitPlayer
-import ru.remsoftware.game.player.PlayerManager
 import ru.remsoftware.game.player.PlayerService
 import ru.remsoftware.utils.Logger
 import ru.starfarm.core.util.format.ChatUtil
@@ -111,11 +109,11 @@ class MoneyManager(
 
     fun handleMoneyOnKill(victimMoney: Int): Int {
         return if (victimMoney < 20) {
-            victimMoney + 20
+            victimMoney + 40
         } else if (victimMoney in 20..50000) {
-            victimMoney / 10 + 20
+            victimMoney / 10 + 40
         } else {
-            victimMoney / 20
+            victimMoney / 20 + 40
         }
 
     }

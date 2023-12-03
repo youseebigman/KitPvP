@@ -13,11 +13,20 @@ import ru.tinkoff.kora.common.Component
 @Component
 class ServerInfoService(
     private val logger: Logger,
+    private val database: DataBaseRepository,
+    private val locationParser: LocationParser,
 ) {
     var serverInfo: ServerInfo? = null
     var spawn: Location? = null
+        private set
     private var bossBar = Bukkit.getServer().createBossBar("", BarColor.PURPLE, BarStyle.SOLID)
     var killStreakBossBar = Pair<String?, BossBar>(null, bossBar)
+
+    fun setSpawn(location: Location) {
+        serverInfo!!.spawn = location
+        spawn = location
+        database.updateSpawn(locationParser.locToStr(location))
+    }
 
     fun loadInfo(database: DataBaseRepository, locationParser: LocationParser) {
         val infoLoader = ServerInfoLoader(database)

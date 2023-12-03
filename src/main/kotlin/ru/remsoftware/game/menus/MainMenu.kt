@@ -7,6 +7,7 @@ import ru.remsoftware.game.arena.ArenaService
 import ru.remsoftware.game.kits.KitManager
 import ru.remsoftware.game.kits.KitService
 import ru.remsoftware.game.money.MoneyManager
+import ru.remsoftware.game.player.PlayerManager
 import ru.remsoftware.game.player.PlayerService
 import ru.remsoftware.utils.parser.InventoryParser
 import ru.starfarm.core.ApiManager
@@ -24,8 +25,10 @@ class MainMenu(
     private val playerService: PlayerService,
     private val arenaService: ArenaService,
     private val inventoryParser: InventoryParser,
+    private val playerManager: PlayerManager,
 ) : InventoryContainer("Меню", 6) {
     override fun drawInventory(player: Player) {
+        val playerName = player.name
         val arenaItem = ApiManager.newItemBuilder(Material.GRASS).apply {
             name = "§fАрена"
             lore(
@@ -51,18 +54,27 @@ class MainMenu(
                 "§7Нажмите, чтобы открыть донат-магазин"
             )
         }.build()
+        val bonusItem = ApiManager.newItemBuilder(Material.EMERALD).apply {
+            name = "§2Бонус"
+            lore(
+                "§7Вы можете забирать бонус каждые 30 минут"
+            )
+        }.build()
         
         addItem(19, arenaItem) { _, _ ->
-            ArenasMenu(kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
+            ArenasMenu(kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser, playerManager).openInventory(player)
         }
         addItem(21, kitMenuItem) { _, _ ->
-            KitsMenu(kitService, kitManager, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
+            KitsMenu(kitService, kitManager, menuUtil, moneyManager, playerService, arenaService, inventoryParser, playerManager).openInventory(player)
         }
         addItem(23, shopItem) { _, _ ->
-            ShopMenu(kitManager, kitService, moneyManager, menuUtil, playerService, arenaService, inventoryParser).openInventory(player)
+            ShopMenu(kitManager, kitService, moneyManager, menuUtil, playerService, arenaService, inventoryParser, playerManager).openInventory(player)
         }
         addItem(25, donateItem) { _, _ ->
             DonateMenu("§0Услуги режима", IDonateService.get().donates.values.filter { !it.global }).openInventory(player)
+        }
+        addItem(40, bonusItem) { _, _ ->
+            playerManager.getBonus(player)
         }
     }
 

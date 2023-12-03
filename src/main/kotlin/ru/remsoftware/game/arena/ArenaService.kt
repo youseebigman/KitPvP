@@ -1,13 +1,11 @@
 package ru.remsoftware.game.arena
 
 import org.bukkit.Location
-import org.bukkit.Sound
-import org.bukkit.entity.Player
 import ru.remsoftware.database.DataBaseRepository
-import ru.remsoftware.game.kits.KitService
-import ru.remsoftware.game.player.PlayerService
 import ru.remsoftware.utils.Logger
 import ru.remsoftware.utils.parser.ArenaLocationParser
+import ru.starfarm.core.util.bukkit.LocationUtil
+import ru.starfarm.core.util.math.Cuboid
 import ru.tinkoff.kora.common.Component
 
 @Component
@@ -15,10 +13,13 @@ class ArenaService(
     private val dataBaseRepository: DataBaseRepository,
     private val arenaLocationParser: ArenaLocationParser,
     private val logger: Logger,
-    private val playerService: PlayerService,
 ) {
     private val arenaLocations = hashMapOf<String, ArrayList<Location>>()
 
+    val SPAWN_ARENA = Cuboid.atLocations(
+        LocationUtil.fromString("lobby 13 110 -12"),
+        LocationUtil.fromString("lobby -13 99 13")
+    )
     operator fun get(worldName: String) = arenaLocations[worldName]
 
     fun update(worldName: String) {
@@ -54,15 +55,5 @@ class ArenaService(
         }
     }
 
-    fun teleportOnRandomSpawnPoints(worldName: String, player: Player) {
-        val kitPlayer = playerService[player.name]!!
-        val locationList = get(worldName)
-        if (locationList != null) {
-            val location = locationList.random()
-            player.teleport(location)
-            kitPlayer.arena = worldName
-            playerService[player.name] = kitPlayer
-            player.playSound(player.eyeLocation, Sound.BLOCK_END_PORTAL_SPAWN, 100f, 1.0f)
-        }
-    }
+
 }

@@ -17,4 +17,5 @@ data class KitPlayer(
     var position: String?,
     var inventory: String?,
     var availableKits: String?,
+    var permissions: String,
 )

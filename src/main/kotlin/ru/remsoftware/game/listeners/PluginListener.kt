@@ -14,6 +14,7 @@ import ru.remsoftware.game.player.PlayerService
 import ru.remsoftware.game.potions.PotionService
 import ru.remsoftware.game.signs.MoneySignData
 import ru.remsoftware.game.signs.SignService
+import ru.remsoftware.server.CommandsHologram
 import ru.remsoftware.server.ServerInfoData
 import ru.remsoftware.server.ServerInfoService
 import ru.remsoftware.utils.Logger
@@ -34,6 +35,7 @@ class PluginListener(
     private val playerCombatManager: PlayerCombatManager,
     private val donateManager: DonateManager,
     private val arenaService: ArenaService,
+    private val commandsHologram: CommandsHologram,
 ) : Listener {
 
 
@@ -51,6 +53,7 @@ class PluginListener(
             }
             it.cancel()
         }
+        commandsHologram.createCommandHologram()
     }
 
     @EventHandler

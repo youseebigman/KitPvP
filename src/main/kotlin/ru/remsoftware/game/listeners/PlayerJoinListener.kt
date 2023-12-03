@@ -1,10 +1,8 @@
 package ru.remsoftware.game.listeners
 
-import org.bukkit.Material
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
-import org.bukkit.inventory.ItemStack
 import ru.remsoftware.game.inventories.InventoryManager
 import ru.remsoftware.game.money.boosters.BoosterManager
 import ru.remsoftware.game.player.PlayerManager
@@ -15,6 +13,7 @@ import ru.remsoftware.utils.parser.InventoryParser
 import ru.remsoftware.utils.parser.LocationParser
 import ru.remsoftware.utils.parser.PotionEffectParser
 import ru.starfarm.core.ApiManager
+import ru.starfarm.core.CorePlugin
 import ru.tinkoff.kora.common.Component
 
 @Component
@@ -28,6 +27,7 @@ class PlayerJoinListener(
     private val gameDataParser: GameDataParser,
     private val inventoryManager: InventoryManager,
     private val playerManager: PlayerManager,
+    private val plugin: CorePlugin,
 ) : Listener {
 
     @EventHandler
@@ -63,12 +63,11 @@ class PlayerJoinListener(
             inventoryManager.setDefaultInventory(player)
         } else {
             val inventory = inventoryParser.jsonToInventory(kitInv)
-            for (i in 0..40) {
-                val item: ItemStack? = inventory.getItem(i)
-                if (item == null) {
-                    player.inventory.setItem(i, ItemStack(Material.AIR))
+            for (i in inventory.withIndex()) {
+                if (i.value == null) {
+                    continue
                 } else {
-                    player.inventory.setItem(i, item)
+                    player.inventory.setItem(i.index, i.value)
                 }
             }
         }
@@ -77,6 +76,16 @@ class PlayerJoinListener(
         }
         playerService.handleKillStreakBossBar()
         playerScoreboard.loadScoreboard(player)
+        if (!player.world.name.equals("world")) {
+            for (players in player.world.players) {
+                player.hidePlayer(plugin, players)
+                player.showPlayer(plugin, players)
+            }
+            for (players in player.world.players) {
+                players.hidePlayer(plugin, player)
+                players.showPlayer(plugin, player)
+            }
+        }
 
     }
 

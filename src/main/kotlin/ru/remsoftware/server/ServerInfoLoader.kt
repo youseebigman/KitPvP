@@ -1,6 +1,5 @@
 package ru.remsoftware.server
 
-import org.bukkit.World
 import ru.remsoftware.database.DataBaseRepository
 
 class ServerInfoLoader(

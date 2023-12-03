@@ -15,7 +15,9 @@ class ChatListener : Listener {
         event.isCancelled = true
         val playerProfile = IProfileService.get().getProfile(event.player)!!
         if (playerProfile.isActiveMute()) return
-        val format = ChatUtil.format("§8[§b§lKit§4§lPvP§8] ${playerProfile.coloredNameWithTitle}§f: ${event.message}")
+        val guildName = playerProfile.guildName
+        val format = if (guildName == null) ChatUtil.format(" ${playerProfile.coloredNameWithTitle}§f: ${event.message}")
+        else ChatUtil.format("§b<$guildName> ${playerProfile.coloredNameWithTitle}§f: ${event.message}")
         Bukkit.getOnlinePlayers().forEach { it.sendMessage(format) }
         Bukkit.getConsoleSender().sendMessage(format)
     }

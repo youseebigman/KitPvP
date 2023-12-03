@@ -54,8 +54,7 @@ repositories.addAll(buildscript.repositories)
 dependencies {
     compileOnly("org.spigotmc:spigot:1.12.2-R0.1-SNAPSHOT")
     compileOnly("com.destroystokyo.paper:paper-api:1.12.2-R0.1-SNAPSHOT")
-    compileOnly("ru.starfarm:core:1.3.80")
-
+    compileOnly("ru.starfarm:core:1.3.92")
     implementation("com.github.youseebiggirl:BoardAPI:-SNAPSHOT")
 
     implementation("mysql:mysql-connector-java:8.0.28")

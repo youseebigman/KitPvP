@@ -6,24 +6,26 @@ import org.bukkit.Sound
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
-import org.bukkit.event.entity.EntityDamageByBlockEvent
 import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.entity.PlayerDeathEvent
-import org.bukkit.event.player.PlayerKickEvent
 import org.bukkit.event.player.PlayerMoveEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.player.PlayerRespawnEvent
 import org.bukkit.potion.PotionEffectType
 import ru.remsoftware.database.DataBaseRepository
+import ru.remsoftware.game.arena.ArenaService
 import ru.remsoftware.game.inventories.InventoryManager
 import ru.remsoftware.game.money.MoneyManager
 import ru.remsoftware.server.ServerInfoService
 import ru.remsoftware.utils.Logger
 import ru.remsoftware.utils.VariationMessages
-import ru.starfarm.core.profile.IProfileService
 import ru.starfarm.core.task.GlobalTaskContext
 import ru.starfarm.core.util.format.ChatUtil
+import ru.starfarm.core.util.number.NumberUtil
+import ru.starfarm.core.util.time.CooldownUtil
+import ru.starfarm.core.util.time.Time
 import ru.tinkoff.kora.common.Component
+import java.util.concurrent.TimeUnit
 
 @Component
 class PlayerManager(
@@ -34,7 +36,9 @@ class PlayerManager(
     private val playerCombatManager: PlayerCombatManager,
     private val serverInfoService: ServerInfoService,
     private val inventoryManager: InventoryManager,
+    private val arenaService: ArenaService,
 ) : Listener {
+
 
     fun handleKillStreakOnKill(victimName: String, killerName: String, kills: Int) {
         playerService.invalidatePlayerKillStreak(victimName)
@@ -86,7 +90,9 @@ class PlayerManager(
             victimData.arena = "lobby"
             victimData.kit = "default"
             playerService.invalidatePlayerKillStreak(victimName)
-            moneyManager.removeMoneyBecauseDeath(victim.name, moneyForKill)
+            if (victimData.money >= 20) {
+                moneyManager.removeMoneyBecauseDeath(victim.name, moneyForKill)
+            }
             playerService[victimName] = victimData
             ChatUtil.sendMessage(victim, "&8[&b&lKit&4&lPvP&8]&f Вы потеряли &a$moneyForKill &fмонет из-за смерти")
             logger.log("$victimName умер от $ld")
@@ -98,8 +104,10 @@ class PlayerManager(
         val player = event.entity
         val cause = event.cause
         if (player is Player) {
-            if (player.world.name.equals("world")) {
-                event.isCancelled = true
+            if (player.world.name.equals("lobby")) {
+                if (!arenaService.SPAWN_ARENA.contains(player)) {
+                    event.isCancelled = true
+                }
             }
             val kitPlayer = playerService[player]!!
             if (cause == (EntityDamageEvent.DamageCause.FALL)) {
@@ -117,10 +125,7 @@ class PlayerManager(
     fun onPlayerMove(event: PlayerMoveEvent) {
         val player = event.player
         if (player.location.y <= 0) {
-            if (player.world.name.equals("world")) {
-                event.player.teleport(serverInfoService.spawn)
-            }
-
+            event.player.teleport(serverInfoService.spawn)
         }
     }
 
@@ -129,6 +134,37 @@ class PlayerManager(
         event.respawnLocation = serverInfoService.serverInfo!!.spawn
         event.player.inventory.clear()
         inventoryManager.setDefaultInventory(event.player)
+    }
+
+    fun getBonus(player: Player) {
+        val playerName = player.name
+        if (CooldownUtil.has("bonus", player)) {
+            val cooldown = NumberUtil.getTime(CooldownUtil.get("bonus", player))
+            ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Бонус будет доступен через $cooldown")
+            if (player.openInventory != null) {
+                player.closeInventory()
+            }
+        } else {
+            var bonus = 500
+            val donatePermissions = playerService.getDonatePermissions(player.name)!!
+            val bonusPermission = donatePermissions["bonus"]!!
+            if (bonusPermission == 1) {
+                CooldownUtil.put("bonus", player, Time(30, TimeUnit.MINUTES))
+                moneyManager.addMoney(playerName, bonus)
+                val playerBalance = playerService[playerName]!!.money
+                ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&a Вы получили $$bonus монет")
+                player.playSound(player.eyeLocation, Sound.ENTITY_PLAYER_LEVELUP, 1.0F, 1.5F)
+                logger.log("Игрок $playerName получил бонус в размере $bonus монет. Текущий баланс: $playerBalance")
+            } else {
+                CooldownUtil.put("bonus", player, Time(30, TimeUnit.MINUTES))
+                bonus *= bonusPermission
+                moneyManager.addMoney(playerName, bonus)
+                val playerBalance = playerService[playerName]!!.money
+                ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&a Вы получили $$bonus монет")
+                player.playSound(player.eyeLocation, Sound.ENTITY_PLAYER_LEVELUP, 1.0F, 1.5F)
+                logger.log("Игрок $playerName получил бонус в размере $bonus монет. Текущий баланс: $playerBalance")
+            }
+        }
     }
 
     fun savePlayerGameData(player: Player) {
@@ -195,6 +231,31 @@ class PlayerManager(
         }
     }
 
+    fun teleportOnRandomSpawnPoints(worldName: String, player: Player) {
+        val kitPlayer = playerService[player.name]!!
+        val locationList = arenaService[worldName]
+        if (locationList != null) {
+            val location = locationList.random()
+            val teleportLocation = Location(location.world, location.x, location.y, location.z, location.yaw, location.pitch)
+            teleportLocation.add(0.0, 0.3, 0.0)
+            val chunk = location.chunk
+            if (chunk.isLoaded) {
+                player.teleport(teleportLocation)
+            } else {
+                println("loading chunk")
+                teleportLocation.world.regenerateChunk(chunk.x, chunk.z)
+                teleportLocation.world.loadChunk(chunk)
+                if (!teleportLocation.chunk.isLoaded) {
+                    println("Chunk not loaded")
+                }
+                player.teleport(teleportLocation)
+            }
+            kitPlayer.arena = worldName
+            playerService[player.name] = kitPlayer
+            player.playSound(player.eyeLocation, Sound.BLOCK_END_PORTAL_SPAWN, 0.6f, 1.0f)
+        }
+    }
+
 
     fun moveToOwnPosition(player: Player, pos: Location) {
         player.teleport(pos)
@@ -202,16 +263,20 @@ class PlayerManager(
 
     fun moveToSpawn(player: Player) {
         val kitPlayer = playerService.get(player)!!
-        val spawn = serverInfoService.spawn
-        if (spawn != null && kitPlayer.arena.equals("lobby")) {
-            player.teleport(spawn)
-        } else if (spawn != null && !kitPlayer.arena.equals("lobby")) {
+        val spawn = serverInfoService.spawn!!
+        val teleportLocation = Location(spawn.world, spawn.x, spawn.y, spawn.z, spawn.yaw, spawn.pitch)
+        teleportLocation.add(0.0, 0.3, 0.0)
+        if (player.isOp) {
+            player.teleport(teleportLocation)
+        } else if (kitPlayer.arena.equals("lobby") && !arenaService.SPAWN_ARENA.contains(player)) {
+            player.teleport(teleportLocation)
+        } else {
             if (playerCombatManager.isCombatPlayer(player.name)) {
                 ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Вы не можете телепортироваться во время боя!")
             } else {
                 val donateGroup = kitPlayer.donateGroup
                 var teleportDuration: Int = when {
-                    donateGroup in 1..2 -> 7
+                    donateGroup == 1 -> 7
                     donateGroup in 2..4 -> 6
                     donateGroup in 5..6 -> 5
                     donateGroup in 7..8 -> 4
@@ -240,7 +305,7 @@ class PlayerManager(
                     }
                     if (teleportDuration == 0) {
                         ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&6 Телепортация...")
-                        player.teleport(spawn)
+                        player.teleport(teleportLocation)
                         kitPlayer.arena = "lobby"
                         playerService[player.name] = kitPlayer
                         player.playSound(player.eyeLocation, Sound.BLOCK_PORTAL_TRAVEL, 1.0f, 1.0f)
@@ -264,7 +329,9 @@ class PlayerManager(
             victimData.deaths += 1
             victimData.currentKills = 0
             victimData.kit = "default"
-            if (moneyForKill != 0) {
+            if (victimMoney <= moneyForKill) {
+                moneyManager.removeMoneyBecauseDeath(victimName, victimMoney)
+            } else {
                 moneyManager.removeMoneyBecauseDeath(victimName, moneyForKill)
             }
             playerService[victim.name] = victimData
@@ -274,6 +341,12 @@ class PlayerManager(
         } else {
             killerData.currentKills += 1
             killerData.kills += 1
+            if (victimData.currentKills >= 10) {
+                val endStreakMessage = ChatUtil.format("&8[&b&lKit&4&lPvP&8]&d&l Игрок &f&l$killerName &d&lпрервал серию из &c&l${victimData.currentKills} убийств &d&lигрока &f&l$victimName!\n &d&lЗа что получил &a&l$$moneyForKill монет!")
+                Bukkit.getOnlinePlayers().forEach {
+                    it.sendMessage(endStreakMessage)
+                }
+            }
             victimData.currentKills = 0
             victimData.deaths += 1
             victimData.kit = "default"
@@ -289,13 +362,19 @@ class PlayerManager(
                 VariationMessages.sendMessageWithVariants(moneyForKill, null, "death", victim, killer)
             }
             VariationMessages.sendMessageWithVariants(moneyForKill, null, "kill", victim, killer)
-            if (victimData.money < 0) victimData.money = 0
+
+            if (killerData.currentKills % 10 == 0) {
+                val streakMessage = ChatUtil.format("&8[&b&lKit&4&lPvP&8]&d&l Игрок &f&l$killerName &d&lсовершил уже &c&l${killerData.currentKills} убийств &d&lподряд! Кто же его остановит?")
+                Bukkit.getOnlinePlayers().forEach {
+                    it.sendMessage(streakMessage)
+                }
+            }
+
             playerService[killerName] = killerData
             playerService[victimName] = victimData
             database.updatePlayer(killerData)
             database.updatePlayer(victimData)
             logger.log("Игрок ${victim.name} был убит игроком ${killer.name}")
-
         }
     }
 }

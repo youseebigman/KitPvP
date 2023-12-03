@@ -22,6 +22,7 @@ class CommandsBootstrap(
         plugin.server.getPluginCommand("kitpvp").executor = commands
         plugin.server.getPluginCommand("kitpvp").tabCompleter = kitpvpTabComplete
         plugin.server.getPluginCommand("spawn").executor = spawnCommand
+        plugin.server.getPluginCommand("spawn").tabCompleter = spawnCommand
         return Mono.empty<Nothing>()
     }
 

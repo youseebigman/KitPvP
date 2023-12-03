@@ -30,8 +30,6 @@ import ru.remsoftware.utils.parser.InventoryParser
 import ru.remsoftware.utils.parser.LocationParser
 import ru.remsoftware.utils.parser.PotionEffectParser
 import ru.starfarm.core.util.format.ChatUtil
-import ru.starfarm.core.util.item.enchants
-import ru.starfarm.core.util.item.removeEnchants
 import ru.tinkoff.kora.common.Component
 
 @Component
@@ -65,7 +63,7 @@ class KitpvpCommands(
                     return true
                 } else {
                     if (args[0].equals("menu", ignoreCase = true)) {
-                        MainMenu(kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
+                        MainMenu(kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser, playerManager).openInventory(player)
                     }
                     if (args[0].equals("potions", ignoreCase = true)) {
                         PotionMenu(potionService, inventoryParser, potionEffectParser).openInventory(player)
@@ -92,8 +90,7 @@ class KitpvpCommands(
                                     }
                                 }
                             }
-                        }
-                        if (args.size == 4) {
+                        } else if (args.size == 4) {
                             if (args[1].equals("add", ignoreCase = true)) {
                                 val enchant = Enchantment.getByName(args[2])
                                 if (player.inventory.itemInMainHand == null) {
@@ -105,7 +102,19 @@ class KitpvpCommands(
                                     ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&a Зачарование успешно добавлено")
                                 }
                             }
-
+                        } else if (args.size == 3) {
+                            if (args[1].equals("name", ignoreCase = true)) {
+                                val name = if (args[2].contains("_")) {
+                                    ChatUtil.color(args[2].replace("_", " "))
+                                } else ChatUtil.color(args[2])
+                                if (player.inventory.itemInMainHand == null) {
+                                    ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Возьмите предмет в руку!")
+                                } else {
+                                    val item = player.inventory.itemInMainHand
+                                    item.setItemMeta(item.itemMeta.apply { displayName = name })
+                                    player.playSound(player.eyeLocation, Sound.BLOCK_NOTE_BELL, 1.0f, 1.0f)
+                                }
+                            }
                         }
                     }
                     if (args[0].equals("create", ignoreCase = true)) {
@@ -151,7 +160,7 @@ class KitpvpCommands(
                                             ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Вы неправильно ввели цену!")
                                         }
                                         if (kitPrice != null) {
-                                            kitManager.createKit(database, player, kitName, kitPrice)
+                                            kitManager.createKit(player, kitName, kitPrice)
                                             ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&a Вы успешно создали кит $kitName!")
                                         }
                                     } else if (args[2].equals("update", ignoreCase = true)) {
@@ -163,7 +172,7 @@ class KitpvpCommands(
                                             ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Вы неправильно ввели цену!")
                                         }
                                         if (kitPrice != null) {
-                                            kitManager.updateKit(database, player, kitName, kitPrice)
+                                            kitManager.updateKit(player, kitName, kitPrice)
                                             ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&a Вы успешно обновили кит $kitName!")
                                         }
                                     } else {
@@ -329,9 +338,8 @@ class KitpvpCommands(
                         }
                         if (args.size == 2) {
                             if (args[1].equals("setspawn", ignoreCase = true)) {
-                                val loc = player.location
-                                serverInfoService.spawn = loc
-                                database.updateSpawn(locationParser.locToStr(loc))
+                                serverInfoService.setSpawn(player.location)
+                                ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&a Вы успешно установили спавн")
                             } else {
                                 ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&e /k server setspawn - установить спавн \n &8[&b&lKit&4&lPvP&8]&e /k server kit [get|create|update] Название (Цена) - работа с китами")
                             }
@@ -366,7 +374,7 @@ class KitpvpCommands(
                                 player.getAttribute(Attribute.GENERIC_MAX_HEALTH).baseValue = hp
                                 player.health = hp
                             } else {
-                                ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]е&cДанного игрока нету на сервере!")
+                                ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Данного игрока нету на сервере!")
                             }
                         }
                     }
@@ -374,7 +382,15 @@ class KitpvpCommands(
             } else {
                 if (args.size == 1) {
                     if (args[0].equals("menu", ignoreCase = true)) {
-                        MainMenu(kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser).openInventory(player)
+                        if (!player.world.name.equals("lobby") || arenaService.SPAWN_ARENA.contains(player)) {
+                            ChatUtil.sendMessage(player, "&8[&b&lKit&4&lPvP&8]&c Нельзя открыть меню находяcь на арене!")
+                            return true
+                        } else {
+                            MainMenu(kitManager, kitService, menuUtil, moneyManager, playerService, arenaService, inventoryParser, playerManager).openInventory(player)
+                        }
+                    } else if (args[0].equals("bonus", ignoreCase = true)) {
+                        playerManager.getBonus(player)
+                        return true
                     }
                 }
             }

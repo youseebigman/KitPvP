@@ -31,7 +31,7 @@ class InventoryParser {
         val inventoryObject = JsonObject()
         for (item in inventory) {
             if (item == null) {
-                val itemJson = itemToJson(ItemStack(Material.AIR))
+                val itemJson: JsonObject? = null
                 inventoryJson.add(itemJson)
             } else {
                 val itemJson = itemToJson(item)
@@ -51,8 +51,12 @@ class InventoryParser {
         val inventory = Bukkit.getServer().createInventory(null, InventoryType.valueOf(inventoryType.asString))
         val inventoryArray = inventoryObject.get("inventory").asJsonArray
         for ((counter, item) in inventoryArray.withIndex()) {
-            val itemStack = jsonToItem(item.toString())
-            inventory.setItem(counter, itemStack)
+            if (item.isJsonNull) {
+                continue
+            } else {
+                val itemStack = jsonToItem(item.toString())
+                inventory.setItem(counter, itemStack)
+            }
         }
         return inventory
     }

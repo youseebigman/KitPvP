@@ -1,7 +1,6 @@
 package ru.remsoftware.game.arena
 
 import ru.remsoftware.database.DataBaseRepository
-import ru.remsoftware.utils.Logger
 
 class ArenaInfoLoader(
     private val worldName: String,

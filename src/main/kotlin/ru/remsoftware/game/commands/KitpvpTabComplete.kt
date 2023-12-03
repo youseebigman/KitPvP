@@ -30,7 +30,7 @@ class KitpvpTabComplete : TabCompleter {
             if (sender is Player) {
                 if (!sender.isOp) {
                     if (args.size == 1) {
-                        val commandList = listOf("menu")
+                        val commandList = listOf("menu", "bonus")
                         val startArgs = args[0]
                         return SortingUtil.sortListWithStartLetters(commandList, startArgs)
                     }

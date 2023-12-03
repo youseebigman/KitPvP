@@ -38,11 +38,13 @@ class PlayerLoader(
         private set
     var availableKits: String? = null
         private set
+    var permissions: String = "donateKit:0,bonus:1"
+        private set
 
     init {
         var playerData = dataBase.loadPlayerData(name)
         if (playerData == null) {
-            playerData = KitPlayer(name, gameData, potionEffects, kit, money, donateGroup, arena, kills, currentKills, deaths, localBooster, activeBooster, boosterTime, position, inventory, availableKits)
+            playerData = KitPlayer(name, gameData, potionEffects, kit, money, donateGroup, arena, kills, currentKills, deaths, localBooster, activeBooster, boosterTime, position, inventory, availableKits, permissions)
             dataBase.createPlayer(playerData)
         }
         this.name = playerData.name
@@ -61,6 +63,7 @@ class PlayerLoader(
         this.position = playerData.position
         this.inventory = playerData.inventory
         this.availableKits = playerData.availableKits
+        this.permissions = playerData.permissions
     }
 
 

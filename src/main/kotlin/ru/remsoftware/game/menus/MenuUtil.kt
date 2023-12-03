@@ -4,6 +4,8 @@ import org.bukkit.Material
 import org.bukkit.Sound
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemFlag
+import ru.remsoftware.game.kits.KitData
+import ru.remsoftware.game.player.KitPlayer
 import ru.remsoftware.game.player.PlayerService
 import ru.starfarm.core.ApiManager
 import ru.starfarm.core.util.format.ChatUtil
@@ -19,6 +21,65 @@ class MenuUtil {
         addItemFlags(*ItemFlag.values())
     }.build()
 
+    fun createLoreForKit(kitData: KitData, playerData: KitPlayer, availableKits: MutableList<String>?): List<String> {
+        val price = kitData.price
+        val kitName = kitData.name
+        val playerKit = playerData.kit
+        if (availableKits == null) {
+            if (playerKit.equals(kitName)) {
+                return listOf(
+                    "",
+                    "§fЦена: §a$$price",
+                    "§aУ вас уже выбран этот кит!",
+                    "",
+                    "§2Вы можете купить кит навсегда за цену в 10 раз больше",
+                    "§2Чтобы купить навсегда, нажмите §bПКМ",
+                )
+            } else {
+                return listOf(
+                    "",
+                    "§fЦена: §a$$price",
+                    "",
+                    "§2Вы можете купить кит навсегда за цену в 10 раз больше",
+                    "§2Чтобы купить навсегда, нажмите §bПКМ"
+                )
+            }
+        } else {
+            if (availableKits.contains(kitName)) {
+                return listOf(
+                    "",
+                    "§fЦена: §a$$price",
+                    "",
+                    "§dУ вас уже куплен этот кит навсегда",
+                )
+            } else if (playerKit.equals(kitName)) {
+                return listOf(
+                    "",
+                    "§fЦена: §a$$price",
+                    "§aУ вас уже выбран этот кит!",
+                    "",
+                    "§2Вы можете купить кит навсегда за цену в 10 раз больше",
+                    "§2Чтобы купить навсегда, нажмите §bПКМ",
+                )
+            } else if (playerKit.equals(kitName) && availableKits.contains(kitName)) {
+                return listOf(
+                    "",
+                    "§fЦена: §a$$price",
+                    "§aУ вас уже выбран этот кит!",
+                    "",
+                    "§dУ вас уже куплен этот кит навсегда",
+                )
+            } else {
+                return listOf(
+                    "",
+                    "§fЦена: §a$$price",
+                    "",
+                    "§2Вы можете купить кит навсегда за цену в 10 раз больше",
+                    "§2Чтобы купить навсегда, нажмите §bПКМ"
+                )
+            }
+        }
+    }
 
 
     fun checkPlayerInventoryForBuy(player: Player, playerService: PlayerService): Boolean {

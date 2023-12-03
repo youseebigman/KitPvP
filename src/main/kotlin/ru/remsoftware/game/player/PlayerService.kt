@@ -1,8 +1,6 @@
 package ru.remsoftware.game.player
 
 import org.bukkit.Bukkit
-import org.bukkit.boss.BarColor
-import org.bukkit.boss.BarStyle
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -35,6 +33,7 @@ class PlayerService(
     private val players = hashMapOf<String, KitPlayer>()
     private val playerAvailableKits = hashMapOf<String, ArrayList<String>?>()
     private var playerKillStreak = hashMapOf<String, Int>()
+    private var playersPermissions = hashMapOf<String, HashMap<String, Int>>()
 
 
     operator fun get(name: String) = players[name]
@@ -49,11 +48,38 @@ class PlayerService(
 
     fun all(): MutableCollection<KitPlayer> = Collections.unmodifiableCollection(players.values)
 
+    fun getAvailableKitList(name: String) = playerAvailableKits[name]
+
+    fun getDonatePermissions(name: String) = playersPermissions[name]
+
+    fun setDonatePermissions(name: String, permissions: HashMap<String, Int>) {
+        playersPermissions[name] = permissions
+    }
+    fun saveDonatePermissions(player: Player, permissionsMap: HashMap<String, Int>) {
+        val playerData = get(player)!!
+        val sb = StringBuilder()
+        permissionsMap.forEach {
+            sb.append(it.key)
+            sb.append(":")
+            sb.append(it.value)
+            sb.append(",")
+        }
+        playerData.permissions = sb.toString().dropLast(1)
+        set(player.name, playerData)
+
+    }
+    fun donatePermissionsToMap(name: String, permissions: String) {
+        playersPermissions[name] = permissions.split(",").associateTo(HashMap()) {
+            val (left, right) = it.split(":")
+            left to right.toInt()}
+    }
+
     fun setPlayerKillStreak(name: String, kills: Int) {
         playerKillStreak[name] = kills
     }
 
     fun invalidatePlayerKillStreak(name: String) = playerKillStreak.remove(name)
+
     fun getMaxKillStreak(): Pair<String, Int>? {
         val max = playerKillStreak.maxWithOrNull { a, b -> a.value.compareTo(b.value) }
         return if (max != null) {
@@ -109,15 +135,17 @@ class PlayerService(
         if (availableKits != null) {
             loadAvailableKit(playerName, availableKits)
         }
+        val permissions = playerData.permissions
+        donatePermissionsToMap(playerName, permissions)
         logger.log("Player data loaded for $playerName")
     }
 
     fun handleKillStreakBossBar() {
         val maxKillStreak = getMaxKillStreak()
+        val bossBar = serverInfoService.killStreakBossBar.second
         if (maxKillStreak != null) {
             val max = maxKillStreak.second
             val playerName = maxKillStreak.first
-            val bossBar = serverInfoService.killStreakBossBar.second
             if (max >= 10) {
                 val profileName = IProfileService.get().getProfile(playerName)!!.coloredNameWithTitle
                 bossBar.title = "$profileName: §d§l$max убийств"
@@ -129,10 +157,11 @@ class PlayerService(
             } else {
                 bossBar.isVisible = false
             }
+        } else {
+            bossBar.isVisible = false
         }
     }
 
-    fun getAvailableKitList(name: String) = playerAvailableKits[name]
 
     fun loadAvailableKit(name: String, kits: String) {
         val kitList: List<String> = kits.split(":")
@@ -166,6 +195,8 @@ class PlayerService(
         if (kitPlayer.activeBooster) {
             kitPlayer.localBooster -= 0.5
         }
+        val playerPermissions = getDonatePermissions(name)!!
+        saveDonatePermissions(player, playerPermissions)
         if (playerCombatManager.isCombatPlayer(name)) {
             kitPlayer.gameData = null
             kitPlayer.inventory = null
@@ -199,7 +230,8 @@ class PlayerService(
             kitPlayer.boosterTime,
             kitPlayer.position,
             kitPlayer.inventory,
-            kitPlayer.availableKits
+            kitPlayer.availableKits,
+            kitPlayer.permissions,
         )
     }
 

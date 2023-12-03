@@ -36,8 +36,9 @@ class DonateManager(
                 ChatUtil.sendMessage(player,"&8[&b&lKit&4&lPvP&8]&a Вы успешно приобрели бустер на 30 минут!")
                 logger.log("Игрок $name купил донат Локальный бустер монет #1")
             }
-            .price(39)
+            .price(29)
             .register()
+
         ApiManager.newDonateBuilder(ChatUtil.color("&a&lЛокальный бустер монет #2"))
             .slot(11)
             .icon(ItemStack(Material.EXP_BOTTLE))
@@ -54,7 +55,7 @@ class DonateManager(
                 ChatUtil.sendMessage(player,"&8[&b&lKit&4&lPvP&8]&a Вы успешно приобрели бустер на 60 минут!")
                 logger.log("Игрок $name купил донат Локальный бустер монет #2")
             }
-            .price(79)
+            .price(59)
             .register()
 
         ApiManager.newDonateBuilder(ChatUtil.color("&a&lЛокальный бустер монет #3"))
@@ -73,8 +74,9 @@ class DonateManager(
                 ChatUtil.sendMessage(player,"&8[&b&lKit&4&lPvP&8]&a Вы успешно приобрели бустер на 4 часа!")
                 logger.log("Игрок $name купил донат Локальный бустер монет #3")
             }
-            .price(199)
+            .price(149)
             .register()
+
         ApiManager.newDonateBuilder(ChatUtil.color("&a&lЛокальный бустер монет #4"))
             .slot(15)
             .icon(ItemStack(Material.EXP_BOTTLE))
@@ -91,8 +93,9 @@ class DonateManager(
                 ChatUtil.sendMessage(player,"&8[&b&lKit&4&lPvP&8]&a Вы успешно приобрели бустер на 12 часов!")
                 logger.log("Игрок $name купил донат Локальный бустер монет #4")
             }
-            .price(399)
+            .price(299)
             .register()
+
         ApiManager.newDonateBuilder(ChatUtil.color("&a&lЛокальный бустер монет #5"))
             .slot(17)
             .icon(ItemStack(Material.EXP_BOTTLE))
@@ -109,10 +112,11 @@ class DonateManager(
                 ChatUtil.sendMessage(player,"&8[&b&lKit&4&lPvP&8]&a Вы успешно приобрели бустер на 7 дней!")
                 logger.log("Игрок $name купил донат Локальный бустер монет #5")
             }
-            .price(999)
+            .price(799)
             .register()
+
         ApiManager.newDonateBuilder(ChatUtil.color("&a&lСлучайный дешёвый кит навсегда"))
-            .slot(29)
+            .slot(21)
             .icon(ItemStack(Material.CHAINMAIL_CHESTPLATE))
             .description(
                 "",
@@ -140,8 +144,9 @@ class DonateManager(
             }
             .price(49)
             .register()
+
         ApiManager.newDonateBuilder(ChatUtil.color("&a&lСлучайный недорогой кит навсегда"))
-            .slot(33)
+            .slot(23)
             .icon(ItemStack(Material.IRON_CHESTPLATE))
             .description(
                 "",
@@ -169,5 +174,83 @@ class DonateManager(
             }
             .price(299)
             .register()
+
+        ApiManager.newDonateBuilder(ChatUtil.color("&a&lУвеличение бонуса"))
+            .slot(40)
+            .icon(ItemStack(Material.EMERALD))
+            .description(
+                "",
+                "&7К вашему бонусу прибавится &a&l$500 &7монет",
+            )
+            .callback {
+                val player = it.player ?: return@callback
+                val name = it.playerName
+                val playerPermissions = playerService.getDonatePermissions(name)!!
+                val bonusPermission = playerPermissions["bonus"]!!
+                playerPermissions["bonus"] = bonusPermission + 1
+                playerService.setDonatePermissions(name, playerPermissions)
+                ChatUtil.sendMessage(player,"&8[&b&lKit&4&lPvP&8]&2&l Поздравляем! Ваш бонус увеличился на $500 монет")
+                logger.log("Игрок $name купил донат Увеличение бонуса")
+            }
+            .price(99)
+            .register()
+
+        /*ApiManager.newDonateBuilder(ChatUtil.color("&a&lДоступ к &e&lELITE китам"))
+            .slot(29)
+            .icon(ItemStack(Material.IRON_INGOT))
+            .description(
+                "",
+                "&7Вы получите доступ к выбору &e&lELITE &7китов",
+            )
+            .callback {
+                val player = it.player ?: return@callback
+                val name = it.playerName
+                val playerPermissions = playerService.getDonatePermissions(name)!!
+                playerPermissions["donateKit"] = 1
+                playerService.setDonatePermissions(name, playerPermissions)
+                ChatUtil.sendMessage(player,"&8[&b&lKit&4&lPvP&8]&2&l Поздравляем! Вы купили доступ к &e&lELITE &2&lкитам")
+                logger.log("Игрок $name купил донат Доступ к ELITE китам")
+            }
+            .price(149)
+            .register()
+
+        ApiManager.newDonateBuilder(ChatUtil.color("&a&lДоступ к &6&lSPONSOR китам"))
+            .slot(31)
+            .icon(ItemStack(Material.GOLD_INGOT))
+            .description(
+                "",
+                "&7Вы получите доступ к выбору &6&lSPONSOR и &e&lELITE &7китов",
+            )
+            .callback {
+                val player = it.player ?: return@callback
+                val name = it.playerName
+                val playerPermissions = playerService.getDonatePermissions(name)!!
+                playerPermissions["donateKit"] = 2
+                playerService.setDonatePermissions(name, playerPermissions)
+                ChatUtil.sendMessage(player,"&8[&b&lKit&4&lPvP&8]&2&l Поздравляем! Вы купили доступ к &6&lSPONSOR &2&lкитам")
+                logger.log("Игрок $name купил донат Доступ к SPONSOR китам")
+            }
+            .price(399)
+            .register()
+
+        ApiManager.newDonateBuilder(ChatUtil.color("&a&lДоступ к &3&lUNIQUE китам"))
+            .slot(33)
+            .icon(ItemStack(Material.DIAMOND))
+            .description(
+                "",
+                "&7Вы получите доступ к выбору &3&lUNIQUE, &6&lSPONSOR, &e&lELITE &7китов",
+            )
+            .callback {
+                val player = it.player ?: return@callback
+                val name = it.playerName
+                val playerPermissions = playerService.getDonatePermissions(name)!!
+                playerPermissions["donateKit"] = 3
+                playerService.setDonatePermissions(name, playerPermissions)
+                ChatUtil.sendMessage(player,"&8[&b&lKit&4&lPvP&8]&2&l Поздравляем! Вы купили доступ к &3&lUNIQUE &2&lкитам")
+                logger.log("Игрок $name купил донат Доступ к UNIQUE китам")
+            }
+            .price(699)
+            .register()*/
+
     }
 }
